@@ -61,7 +61,7 @@
             </header>
 
             <!-- Upload Area -->
-            <div class="upload-section">
+            <div class="upload-section" >
                 <div class="upload-box">
                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
                     <h3>Kéo thả hoặc Click để tải PDF</h3>
@@ -124,10 +124,11 @@
         const statusBar = document.getElementById("statusBar");
         const chatArea = document.getElementById("chatArea");
         const uploadBox = document.querySelector('.upload-box');
+        const uploadSection = document.querySelector('.upload-section');
         let chatHistory = [];
 
         // ==================== HÀM CHUNG ====================
-        function toggleInput(enabled) {
+        function toggleInput(enabled, check_history = false) {
             if (enabled) {
                 questionInput.disabled = false;
                 askBtn.disabled = false;
@@ -136,7 +137,12 @@
             } else {
                 questionInput.disabled = true;
                 askBtn.disabled = true;
-                questionInput.placeholder = "Vui lòng upload tài liệu PDF trước...";
+                if (!check_history) {
+                    questionInput.placeholder = "Vui lòng upload tài liệu PDF trước...";
+                } else {
+                    questionInput.placeholder = "Không thể gửi tin nhắn khi đang xem lịch sử";
+                }
+
                 askBtn.style.backgroundColor = "#6c757d";
             }
         }
@@ -198,8 +204,6 @@
             }, 3500);
         }
         // ==================== DRAG & DROP - HIGHLIGHT UPLOAD SECTION ====================
-        const uploadSection = document.querySelector('.upload-section');
-
         function preventDefaults(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -283,6 +287,9 @@
         `;
                 chatArea.appendChild(msgDiv);
             });
+            toggleInput(false, true);
+            uploadSection.disabled =true
+
         }
         // ==================== UPLOAD PDF ====================
         document.getElementById("uploadBtn").addEventListener("click", () => {
