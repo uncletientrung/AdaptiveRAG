@@ -96,13 +96,14 @@ def upload_pdf(request): # request <WSGIRequest: POST '/upload/'>
             })
 
             request.session['current_chat_id'] = chat_id
-            request.session.modified = True
+            request.session.modified = True # Báo cho django biết session đã bị thay đổi và lưu lại
 
             return JsonResponse({ 
                 "success": True,
                 "pages": len(documents),
                 "chunks": len(chunks),
-                "pdf_path": path  
+                "pdf_path": path,
+                "current_chat_id":chat_id
             })
         except Exception as e:
             logger.error(f"Lỗi upload: {str(e)}")
@@ -133,7 +134,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
             result = rag_chain.invoke({ # Đặt câu hỏi và sinh câu trả lời và source_documents nếu bật
                 "query": query
             })
-            logger.info(f"Bot: {result['result']}")
+            logger.info(f"Bot: Trả lời thành công")
             logger.info("------------------------------------------------------------")
 
             # Lưu vào session chat
@@ -182,3 +183,96 @@ def get_chat_history(request):
             "current_chat_id": request.session.get("current_chat_id")
         })
     return JsonResponse({"error": "Lỗi lấy chat history ở Views"}, status=405)
+
+@csrf_exempt
+def delete_chat(request): # Xóa chat dựa trên id
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            chat_id = data.get("remove_chat_id") # Lấy id chat cần xóa
+            current_chat_id = request.session.get("current_chat_id") 
+            if not chat_id:
+                return JsonResponse({"success": False, "message": "Thiếu chat_id"}, status=400)
+
+            chat_sessions = get_or_create_chat_sessions(request)
+            updated_sessions = [] # Lọc bỏ chat cần xóa
+            for chat in chat_sessions:
+                if chat["id"] != chat_id:
+                    updated_sessions.append(chat)
+            
+            request.session['chat_sessions'] = updated_sessions # Update lại lịch sử chat
+            if request.session.get('current_chat_id') == chat_id: # nếu xóa chat đang nhắn
+                current_chat_id = -1
+                    
+            request.session.modified = True
+            return JsonResponse({
+                "success": True,
+                "message": "Đã xóa cuộc trò chuyện",
+                "chat_sessions": updated_sessions,
+                "current_chat_id": current_chat_id
+                
+            })
+        except Exception as e:
+            return JsonResponse({
+                "success": False,
+                "message": "Có lỗi khi xóa cuộc trò chuyện"
+            }, status=500)
+    
+    return JsonResponse({"error": "Lỗi ở xóa chat trong Views"}, status=405)
+
+@csrf_exempt
+def switch_document(request):
+    global rag_chain
+    global current_pdf_path
+    global logger
+
+    if request.method == "POST":
+        logger = create_logger() if logger is None else logger
+        
+        try:
+            file = request.FILES.get("file")
+            if not file:
+                return JsonResponse({"success": False, "detail": "Không tìm thấy file"}, status=400)
+
+            file_format = os.path.splitext(file.name)[1].lower()
+            
+            if file.size > 50 * 1024 * 1024:
+                return JsonResponse({"success": False, "detail": "File phải nhỏ hơn 50MB"})
+            if file_format not in [".pdf", ".docx"]:
+                return JsonResponse({"success": False, "detail": "Chỉ hỗ trợ PDF và DOCX"})
+
+            path = os.path.join("data", file.name)
+            with open(path, "wb+") as f:
+                for chunk in file.chunks():
+                    f.write(chunk)
+            qa_chain, vectorstore, chunks, documents = build_rag_pipeline(path)
+            rag_chain = qa_chain
+            current_pdf_path = path
+
+            logger.info(f"Đổi tài liệu thành công: {file.name} | Pages: {len(documents)} | Chunks: {len(chunks)}")
+            chat_sessions = get_or_create_chat_sessions(request)
+            current_chat_id = request.session.get("current_chat_id")
+            for chat in chat_sessions:
+                if chat["id"] == current_chat_id:
+                    chat["file"] = file.name  # Đổi tên file trong session
+                    break
+
+            request.session.modified = True
+            return JsonResponse({
+                "success": True,
+                "message": "Đã đổi sang tài liệu mới",
+                "file_name": file.name,
+                "pages": len(documents),
+                "chunks": len(chunks),
+                "pdf_path": path,
+                "current_chat_id": current_chat_id
+            })
+
+        except Exception as e:
+            logger.error(f"Lỗi đổi tài liệu: {str(e)}")
+            return JsonResponse({
+                "success": False,
+                "detail": "Lỗi khi xử lý tài liệu mới"
+            })
+
+    return JsonResponse({"error": "Method not allowed"}, status=405)

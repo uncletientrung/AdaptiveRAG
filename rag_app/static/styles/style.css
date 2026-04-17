@@ -9,7 +9,7 @@ body {
     background: #F8F9FA;
     color: #212529;
     height: 100vh;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .container {
@@ -108,6 +108,12 @@ body {
     gap: 20px;
     overflow-y: auto;
 }
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
 
 .header h1 {
     font-size: 1.85rem;
@@ -166,6 +172,7 @@ body {
     white-space: pre-line;
     gap: 18px;
     padding: 10px 0;
+    overflow-y: auto;
 }
 
 .message {
@@ -212,6 +219,9 @@ body {
 /* Input Area */
 .input-section {
     margin-top: auto;
+    position: sticky;
+    bottom: 0;
+    background: #F8F9FA;
 }
 
 .input-wrapper {
@@ -250,6 +260,7 @@ body {
     background: #2C2F33;
     color: white;
     padding: 24px 20px;
+    overflow-y: auto;
 }
 
 .sidebar-right h3 {
@@ -257,18 +268,6 @@ body {
     color: #ffffff;
 }
 
-.history-item {
-    background: #3A3F44;
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.history-item:hover {
-    background: #4A4F55;
-}
 
 /* ==================== STATUS BAR ==================== */
 .status-bar {
@@ -350,7 +349,8 @@ body {
 }
 /* ======================== HISTORY ============================ */
 .history-item {
-    padding: 12px 15px;
+    position: relative; /* 👈 quan trọng */
+    padding: 12px 40px 12px 15px; /* chừa chỗ cho nút X */
     margin: 6px 0;
     background: #2a2a2a;
     border-radius: 8px;
@@ -366,8 +366,196 @@ body {
     transform: translateX(4px);
 }
 
-.history-item small {
-    margin-left: auto;
-    color: #888;
-    font-size: 0.8em;
+.history-content {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.history-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.history-item.active {
+    background: #3a3a3a;
+}
+
+/* Dòng 1 */
+.history-title {
+    font-weight: 600;
+    color: #fff;
+    font-size: 14px;
+}
+
+/* Dòng 2 */
+.history-sub {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+.history-item:hover .delete-chat-btn {
+    opacity: 1;
+}
+
+/* ======================== Xóa history ============================ */
+.delete-chat-btn {
+    position: absolute; 
+    top: 8px;
+    right: 8px;
+
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0; /* ẩn mặc định */
+    transition: all 0.2s ease;
+}
+
+/* Hover */
+.delete-chat-btn:hover {
+    background: #ff4d4f;
+    color: white;
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* Click effect */
+.delete-chat-btn:active {
+    transform: scale(0.9);
+}
+
+/* ======================== CHANGE DOCUMENT ============================ */
+.btn-change-document {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-change-document:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+.btn-change-document i {
+    font-size: 1.1rem;
+}
+
+/* ======================== Confirm Dialog  ============================ */
+.confirm-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    background: rgba(0, 0, 0, 0.5);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s ease;
+
+    z-index: 9999;
+}
+
+/* Khi mở */
+.confirm-dialog.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ===== BOX ===== */
+.confirm-box {
+    background: white;
+    border-radius: 12px;
+    width: 320px;
+    padding: 20px;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+
+    transform: scale(0.9);
+    transition: 0.2s ease;
+}
+
+/* Animation khi show */
+.confirm-dialog.show .confirm-box {
+    transform: scale(1);
+}
+
+/* ===== HEADER ===== */
+.confirm-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.confirm-header i {
+    color: #dc3545;
+}
+
+/* ===== BODY ===== */
+.confirm-body {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* ===== BUTTONS ===== */
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-cancel {
+    padding: 6px 14px;
+    border: none;
+    background: #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #bbb;
+}
+
+.btn-danger {
+    padding: 6px 14px;
+    border: none;
+    background: #dc3545;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-danger:hover {
+    background: #c82333;
 }
