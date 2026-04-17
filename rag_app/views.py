@@ -161,10 +161,14 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
             request.session.modified = True # Báo session đã thay đổi
 
             sources = [] # Nguồn tham khảo
-            for doc in result["source_documents"]:
+            for i, doc in enumerate(result["source_documents"], 1):
+                metadata = doc.metadata
                 sources.append({
+                    "id": i,
                     "page_content": doc.page_content,
-                    "metadata": doc.metadata
+                    "page": metadata.get("page", "N/A") + 1 if isinstance(metadata.get("page"), int) else metadata.get("page", "N/A"),
+                    "source": os.path.basename(metadata.get("source", current_pdf_path)),
+                    "chunk_index": metadata.get("chunk_index", "N/A"),
                 })
             return JsonResponse({
                 "result": result["result"],

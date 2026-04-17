@@ -161,6 +161,17 @@
         </div>
     </div>
 
+    <!-- Source Modal -->
+    <div id="sourceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-alt"></i> Nội dung gốc <span id="modalPage"></span></h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modalContent"></div>
+        </div>
+    </div>
+
     <script>
         // ==================== KHỞI TẠO BIẾN ====================
         let currentPdfPath = null;
@@ -239,7 +250,7 @@
             return msgDiv;
         }
 
-        async function streamResponse(aiMessageDiv, fullText) {
+        async function streamResponse(aiMessageDiv, fullText) { // Xử lý thanh cuộn
             const contentDiv = aiMessageDiv.querySelector(".message-content");
             contentDiv.innerHTML = "";
             let i = 0;
@@ -258,8 +269,14 @@
                 }
             }, 25);
         }
+        
+        function showSourceModal(fullText, pageInfo) {
+            document.getElementById("modalPage").textContent = pageInfo;
+            document.getElementById("modalContent").textContent = fullText;
+            document.getElementById("sourceModal").style.display = "flex";
+        }
         // ==================== Dialog Confirm ====================
-        function confirmCustom(message) {
+        function confirmCustom(message) { // Dialog confirm
             return new Promise((resolve) => {
                 const dialog = document.getElementById("confirmDialog");
                 const msg = document.getElementById("confirmMessage");
@@ -531,19 +548,51 @@
                 const data = await res.json();
 
                 if (data.result) {
+                    console.log(data);
+                    
                     await streamResponse(aiMessageDiv, data.result);
                     if (data.chat_sessions) {
                         currentChatId = data.current_chat_id;
                         chatHistory = data.chat_sessions;
                         renderHistory();
                     }
+                    // ==================== HIỂN THỊ CITATION ====================
                     if (data.source_documents && data.source_documents.length > 0) {
-                        let sources = "<br><strong>Nguồn tham khảo:</strong><ul>";
-                        data.source_documents.forEach(doc => {
-                            sources += `<li>${doc.page_content.substring(0, 150)}...</li>`;
+                        let sourcesHTML = `
+                            <br>
+                            <strong><i class="fas fa-link"></i> Nguồn tham khảo (${data.source_documents.length})</strong>
+                            <div class="sources-container">
+                        `;
+
+                        data.source_documents.forEach((doc, index) => {
+                            const snippet = doc.page_content.substring(0, 180).replace(/\n/g, ' ') + '...';
+                            
+                            sourcesHTML += `
+                                <div class="source-item" data-source-id="${index}" data-full-text="${encodeURIComponent(doc.page_content)}">
+                                    <div class="source-header">
+                                        <span class="source-badge">Nguồn ${doc.id}</span>
+                                        <span class="source-page">Trang <strong>${doc.page}</strong></span>
+                                    </div>
+                                    <div class="source-snippet">${snippet}</div>
+                                    <small class="source-file">${doc.source}</small>
+                                </div>
+                            `;
                         });
-                        sources += "</ul>";
-                        addMessage("ai", sources);
+
+                        sourcesHTML += `</div>`;
+                        
+                        const sourceMsg = addMessage("ai", sourcesHTML);
+                        
+                        // Thêm event click cho từng source
+                        setTimeout(() => {
+                            sourceMsg.querySelectorAll('.source-item').forEach(item => {
+                                item.addEventListener('click', () => {
+                                    const fullText = decodeURIComponent(item.dataset.fullText);
+                                    showSourceModal(fullText, 
+                                        `Trang ${item.querySelector('.source-page strong').textContent}`);
+                                });
+                            });
+                        }, 100);
                     }
                 } else {
                     aiMessageDiv.querySelector(".message-content").innerHTML = "Không nhận được câu trả lời.";
@@ -755,7 +804,17 @@
             showToast("Điều chỉnh thông số cấu hình thành công!", "success");
         });
 
+        
+        // Đóng modal
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById("sourceModal").style.display = "none";
+            });
+        });
 
+        document.getElementById("sourceModal").addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = "none";
+        });
         // ==================== KHỞI TẠO ====================
         window.addEventListener('load', () => {
             toggleInput(false);

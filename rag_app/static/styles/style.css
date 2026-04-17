@@ -680,3 +680,104 @@ body {
     background: #007BFF; 
     color: white;
 }
+/* ==================== CITATION STYLES ========================================*/
+.sources-container {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.source-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.source-item:hover {
+    border-color: #007BFF;
+    background: #f0f8ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+}
+
+.source-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.source-badge {
+    background: #007BFF;
+    color: white;
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.source-page {
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.source-snippet {
+    font-size: 0.93rem;
+    line-height: 1.5;
+    color: #333;
+}
+
+.source-file {
+    font-size: 0.78rem;
+    color: #6c757d;
+    margin-top: 6px;
+    display: block;
+}
+/* ==================== modal ========================================*/
+.modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 700px;
+    border-radius: 12px;
+    max-height: 85vh;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 70vh;
+    white-space: pre-line;
+    line-height: 1.7;
+}
+
+.modal-close {
+    font-size: 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #aaa;
+}
