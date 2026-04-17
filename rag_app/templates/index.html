@@ -443,9 +443,12 @@
             if(activeChatId == currentChatId){
                 toggleInput(true);
                 changeDocumentBtn.style.display = "flex";
+                toggleInputSetting(false)
             }else{
                 toggleInput(false, true);
                 changeDocumentBtn.style.display = "none";
+                editBtn.style.display = "none";
+                saveBtn.style.display = "none";
             }
             uploadSection.style.display = "none";
             
@@ -576,6 +579,7 @@
             uploadSection.style.display = "block";
             questionInput.value = "";
             toggleInput(false, false);
+            toggleInputSetting(false);
             renderHistory();
             if(showToast)
                 showToast("Đã tạo chat mới. Vui lòng upload tài liệu!", "success");
@@ -630,8 +634,6 @@
                 input.accept = '.pdf,.docx';
                 input.onchange = async (e) => {
                     const selectedFile = e.target.files[0];
-                    console.log(selectedFile);
-                    
                     if (!selectedFile) return;
                     
                     await processChangeDocument(selectedFile);
@@ -649,9 +651,9 @@
 
         async function processChangeDocument(file = false) {
             let fileName = null;
-            if (!file) {
+            if (!file) { // Nếu không truyền file (tức chỉ sửa chỉ số)
                 fileName = currentPdfPath.split(/[/\\]/).pop();
-            } else {
+            } else { // Nếu truyền file vào
                 fileName = file.name;
             }
             
