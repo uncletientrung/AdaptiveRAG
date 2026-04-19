@@ -1,4 +1,5 @@
-from langchain.chains import RetrievalQA
+from langchain.chains import RetrievalQA, ConversationalRetrievalChain
+from langchain.memory import ConversationBufferMemory
 from document_processing.pdf_loader import load_and_split_pdf
 from document_processing.docx_loader import load_and_split_docx
 from vector_store.faiss_store import create_faiss_vectorstore
@@ -17,15 +18,29 @@ def build_rag_pipeline(file_path: str,chunk_size: int = 1000, chunk_overlap: int
     vectorstore = create_faiss_vectorstore(chunks) # Tạo FAISS obj
     retriever = get_retriever(vectorstore, top_k, fetch_k) # Gán FAISS sang retriever
     llm = get_llm(temperature=temperature) # Tạo Ollama
-
-    qa_chain = RetrievalQA.from_chain_type( 
-        llm=llm,
-        retriever=retriever,
-        chain_type="stuff", # Nối các chunk lại vảo promt
-        chain_type_kwargs={"prompt": VIETNAMESE_PROMPT},  # Dùng prompt tiếng Việt
-        return_source_documents=True,  # Hiển thị nguồn
+    chatMemory = ConversationBufferMemory(
+        memory_key="chat_history",
+        return_messages=True, # Định dạng trả về true thì là Obj ([ HumanMessage("Hi"), AIMessage("Hello")]), false thì "Human: Hi\nAI: Hello"
+        output_key="answer" # Lấy nội dung answer để lưu vào memory
     )
 
+    # qa_chain = RetrievalQA.from_chain_type( 
+    #     llm=llm,
+    #     retriever=retriever,
+    #     chain_type="stuff", # Nối các chunk lại vảo promt
+    #     chain_type_kwargs={"prompt": VIETNAMESE_PROMPT},  # Dùng prompt tiếng Việt
+    #     return_source_documents=True,  # Hiển thị nguồn
+    # )
+    qa_chain = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=retriever,
+        memory=chatMemory,
+        chain_type="stuff",
+        combine_docs_chain_kwargs={"prompt": VIETNAMESE_PROMPT},
+        return_source_documents=True,
+        verbose=True  # debug memory
+    )
+    qa_chain.memory.clear() # reset memory mỗi lần 
     return (
         qa_chain,
         vectorstore,

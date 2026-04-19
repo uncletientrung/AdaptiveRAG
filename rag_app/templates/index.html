@@ -590,13 +590,11 @@
                 const res = await fetch(`/ask/`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ query: question, pdf_path: currentPdfPath })
+                    body: JSON.stringify({ query: question})
                 });
 
                 const data = await res.json();
-
                 if (data.result) {
-                    
                     await streamResponse(aiMessageDiv, data.result);
                     if (data.chat_sessions) {
                         currentChatId = data.current_chat_id;
@@ -617,11 +615,6 @@
         }
 
         // ==================== SOURCE PANEL ====================
-
-
-        sourcePanelToggle.addEventListener('click', () => {
-            sourcePanel.classList.toggle('open');
-        });
 
         function showSourcePanel(sources, pdfPath) {
             const list = document.getElementById('sourcePanelList'); // Danh sách src
@@ -669,7 +662,6 @@
                 list.appendChild(item);
             });
         }
-
 
         // ==================== Load history khi trang load hoặc sau upload thành công ====================
         async function loadHistory(BoiDenItemChat = false) {
@@ -995,9 +987,13 @@
             btn.addEventListener('click', () => {
                 const modal = document.getElementById("pdfViewerModal");
                 if (modal) modal.style.display = "none";
-                // clear canvas nếu cần
             });
         });
+                // Mở nguồn tham khảo
+        sourcePanelToggle.addEventListener('click', () => {
+            sourcePanel.classList.toggle('open');
+        });
+
         document.getElementById("sourceModal").addEventListener('click', function(e) {
             if (e.target === this) this.style.display = "none";
         });

@@ -137,10 +137,11 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
             query = data.get("query")
             logger.info(f"User: {query}")
             result = rag_chain.invoke({ # Đặt câu hỏi và sinh câu trả lời và source_documents nếu bật
-                "query": query
+                "question": query
             })
             logger.info(f"Bot: Trả lời thành công")
             logger.info("------------------------------------------------------------")
+            # print(result)
 
             # Lưu vào session chat
             chat_sessions = get_or_create_chat_sessions(request)
@@ -155,7 +156,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
 
                     chat["history"].append({
                         "role": "ai",
-                        "content": result['result'],
+                        "content": result.get('answer', ''),
                         "timestamp": datetime.now().strftime("%H:%M")
                     })
             request.session.modified = True # Báo session đã thay đổi
@@ -164,7 +165,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
             for i, doc in enumerate(result["source_documents"], 1):
                 metadata = doc.metadata
                 page = metadata.get("page") 
-                print(f"IDDD: {i} -- DOCCCCCCCC: {doc} -------- METADATAAAAA {doc.metadata} ----------- PAGEEEE: {page}")
+                # print(f"IDDD: {i} -- DOCCCCCCCC: {doc} -------- METADATAAAAA {doc.metadata} ----------- PAGEEEE: {page}")
                 if isinstance(page, int):
                     page = page + 1  # vì nhiều loader bắt đầu từ 0
 
@@ -179,7 +180,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
                     "full_text_for_highlight": doc.page_content.strip()
                 })
             return JsonResponse({
-                "result": result["result"],
+                "result": result["answer"],
                 "pdf_path": current_pdf_path,
                 "source_documents": sources,
                 "chat_sessions": chat_sessions,

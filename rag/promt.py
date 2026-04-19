@@ -32,13 +32,17 @@ Yêu cầu trình bày:
   "Thông tin chính"
 - Không được nhắc đến từ "nguồn", "cid"                                                 
 
-Context:
+Lịch sử hội thoại:
+{chat_history}
+
+Ngữ cảnh từ tài liệu:
 {context}
 
-Question:
-{question}
+Câu hỏi hiện tại: {question}
 
-Answer:
+Hãy trả lời bằng tiếng Việt, ngắn gọn, rõ ràng, lịch sự. 
+                                                 
+Trả lời:
 """)
 
 # Prompt tiếng Anh (dự phòng)
