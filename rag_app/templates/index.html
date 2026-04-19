@@ -140,7 +140,7 @@
         </aside>
     </div>
 
-    <!-- Source Panel - Trượt lên/xuống -->
+    <!-- Source Panel --->
     <div id="sourcePanel" class="source-panel">
         <div class="source-panel-toggle" id="sourcePanelToggle">
             <div class="source-panel-toggle-left">
@@ -207,9 +207,9 @@
                     <div id="textLayer" class="textLayer"></div>
                 </div>
             </div>
-            <div style="padding: 10px; text-align: center; background: #f1f1f1; font-size: 0.9rem; color: #555;">
+            <!-- <div style="padding: 10px; text-align: center; background: #f1f1f1; font-size: 0.9rem; color: #555;">
                 Nhấn Ctrl + F để tìm thêm trong PDF • Highlight màu vàng là đoạn được sử dụng để trả lời
-            </div>
+            </div> -->
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -624,7 +624,7 @@
         });
 
         function showSourcePanel(sources, pdfPath) {
-            const list = document.getElementById('sourcePanelList');
+            const list = document.getElementById('sourcePanelList'); // Danh sách src
             const badge = document.getElementById('sourcePanelCount');
             const title = document.getElementById('sourcePanelTitle');
 
@@ -668,9 +668,6 @@
 
                 list.appendChild(item);
             });
-
-            // Tự động mở panel
-            sourcePanel.classList.add('open');
         }
 
 
@@ -819,10 +816,10 @@
         }
         
         // ==================== PDF.js HIGHLIGHT VIEWER (PHIÊN BẢN TỐI ƯU) ====================
-        let pdfDocGlobal = null;
-        const pdfCanvas = document.getElementById('pdfCanvas');
+        let pdfDocGlobal = null; // lưu toàn bộ file PDF sau khi load
+        const pdfCanvas = document.getElementById('pdfCanvas'); // dùng để render PDF
         const pdfCtx = pdfCanvas.getContext('2d');
-        const textLayerDiv = document.getElementById('textLayer');
+        const textLayerDiv = document.getElementById('textLayer'); // Lớp text nằm trên canvas (để highligt)
 
         async function openPdfWithHighlight(pdfRelativePath, targetPage, highlightText) {
             const modal = document.getElementById("pdfViewerModal");
@@ -929,8 +926,6 @@
             }
         }
 
-
-        
         // ==================== EVENT LISTENERS ====================
         changeDocumentBtn.addEventListener("click", function () {
             changeDocument(true);

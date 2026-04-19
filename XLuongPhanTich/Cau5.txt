@@ -1,0 +1,47 @@
+User hỏi
+    ↓
+def ask_question(request)           
+    // Lấy result["source_documents"] (Đây là nguồn tham khảo LLM trả về, cái lấy có bao nhiêu dựa trên top k)
+    sources = [] // Lưu trữ các nguồn tham khảo để bật pdf
+    for i, doc in enumerate(result["source_documents"], 1): // Đọc bắt đầu từ 1
+            // 1 Doc sẽ chứa 1 page_content => là nội dung text của chunk đó, và 1 metadata là thông tin về mô tả của chunk đó
+        metadata = doc.metadata // Metadata chứa các đối tượng như src (nguồn file), page (vị trí của trang), total_page (tổng số trang)
+            // Và các thông tin phụ như Author, CreationDate, Producer, Title mà RAG không cần
+        page = metadata.get("page") // Lấy vị trí trang bắt đầu của nó 
+        if isinstance(page, int): // Nếu page là số thì + 1, vì nhiều loader bắt đầu từ 0
+            page = page + 1
+
+        sources.append({
+            "id": i,
+            "page_content": doc.page_content,          // Nội dung của chunk đó
+            "snippet": doc.page_content[:280] + "..." if len(doc.page_content) > 280 else doc.page_content, // Cái xem nội dung gốc nếu hơn 280 ký tự thì cắt
+                // snippet Dùng để hiển thị text title trước khi bấm vào xem nội dung hoặc xem pdf
+            "page": page, // Số trang
+            "short_highlight": doc.page_content.replace('\n', ' ').strip(), // Đoạn cần highlight
+            "source": os.path.basename(metadata.get("source", current_pdf_path)), // Lấy nguồn trong metadata nếu không có lấy biến global
+            "chunk_index": metadata.get("chunk_index", "N/A"), // Lấy STT chunk trong tài liệu KHÔNG DÙNG
+            "full_text_for_highlight": doc.page_content.strip() // KHÔNG DÙNG
+        })
+
+    ↓           // Trả session nguồn về cho frontend
+async function askQuestion()
+    ↓
+function showSourcePanel() Dùng để hiển thị thanh cuộn nguồn ở trạng thái show
+    ↓
+    Nếu bấm vào XEM NỘI DUNG GỐC
+    ↓
+    - showSourceModal(doc.page_content, `Trang ${doc.page}`)  // Sẽ dị 1 cái dialog chưa nội dung của đoạn chunk đó và số trang của chunk đó
+    ↓
+    Nếu bấm vào XEM PDF HIGHLIGHT
+        path được truyền vào sẽ là doc.pdf_path bên backend hoặc current_pdf_path bên frontend nếu backend sai và phải bắt đầu bằng data/
+    ↓ 
+    - await openPdfWithHighlight(path, parseInt(doc.page), doc.full_text_for_highlight || doc.page_content);
+        // Hàm điều phối
+        ↓ 
+        -- async function renderPdfPage(pageNum, highlightText) // Vẽ PDF lên canvas (ảnh), Tạo các Span Text đè lên canvas
+            // Bước này là tạo nền cho highlight
+        ↓ 
+        function preciseHighlight(originalText)
+            // So sánh các text trong RAG với text trong PDF 
+            // Tô màu các span nếu khớp
+            // Scroll tới đoạn đầu tiên
