@@ -1,0 +1,15 @@
+8.2.6 Câu hỏi 6: Implement Conversational RAG
+Yêu cầu:
+• Thêm memory để theo dõi ngữ cảnh cuộc hội thoại
+• LLM có thể tham chiếu câu hỏi và trả lời trước đó
+• Xử lý follow-up questions (câu hỏi tiếp theo)
+
+Sử dụng ConversationBufferMemory + ConversationalRetrievalChain.from_llm
+- ConversationBufferMemory Nơi lưu lịch sử ngữ cảnh
+    chatMemory = ConversationBufferMemory(
+            memory_key="chat_history",      // Tên biến mà memory sẽ inject vào prompt
+            return_messages=True, # Định dạng trả về true thì là Obj ([ HumanMessage("Hi"), AIMessage("Hello")]), false thì "Human: Hi\nAI: Hello"
+            output_key="answer" # Lấy nội dung answer để lưu vào memory
+        )
+
+ConversationalRetrievalChain.from_llm   // Chat history + Question → Retriever → LLM
