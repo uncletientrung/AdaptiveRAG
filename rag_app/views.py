@@ -64,6 +64,9 @@ def upload_pdf(request): # request <WSGIRequest: POST '/upload/'>
         file = request.FILES.get("file") # lấy biến file PDF từ FormData từ hàm upload bên frontend.
         file_format = os.path.splitext(file.name)[1].lower()
         request.session['file_name']= file.name
+
+        files= request.FILES.getlist("file")
+        
         try:
             logger.info(f"File: {file.name}")
             if file.size > 50 * 1024 * 1024:
@@ -141,7 +144,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
             })
             logger.info(f"Bot: Trả lời thành công")
             logger.info("------------------------------------------------------------")
-            # print(result)
+            print(result)
 
             # Lưu vào session chat
             chat_sessions = get_or_create_chat_sessions(request)
@@ -165,7 +168,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
             for i, doc in enumerate(result["source_documents"], 1):
                 metadata = doc.metadata
                 page = metadata.get("page") 
-                # print(f"IDDD: {i} -- DOCCCCCCCC: {doc} -------- METADATAAAAA {doc.metadata} ----------- PAGEEEE: {page}")
+                print(f"IDDD: {i} -- DOCCCCCCCC: {doc} -------- METADATAAAAA {doc.metadata} ----------- PAGEEEE: {page}")
                 if isinstance(page, int):
                     page = page + 1  # vì nhiều loader bắt đầu từ 0
 

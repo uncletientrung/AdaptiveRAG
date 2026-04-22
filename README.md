@@ -28,6 +28,7 @@ Project-LLMs-Rag-Agent/
 │   ├── pipeline.py
 │   ├── embedding.py
 │   ├── retriever.py
+│   ├── hybrid_retriever.py
 │   ├── promt.py
 │   └── llm.py
 │
