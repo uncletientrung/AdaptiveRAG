@@ -1,0 +1,30 @@
+Câu hỏi 9: Implement Re-ranking với Cross-Encoder
+Yêu cầu:
+• Thêm bước re-ranking sau retrieval
+• Sử dụng cross-encoder model để đánh giá lại relevance
+• So sánh với bi-encoder (current approach)
+• Tối ưu hóa latency
+
+Bi-encoder là cái dùng trước khi sang câu 9 nó thực hiện
+    Query → embedding
+    Document → embedding
+    So sánh bằng cosine similarity → lấy top K
+    // User query → Retriever (FAISS) → Top K docs → LLM
+
+Cross-Encoder là gì?
+    Khác hoàn toàn:
+        Nó nhận (query + document) cùng lúc
+        Sau đó tính điểm relevance trực tiếp
+    Kiểu như:
+        "Query: What is AI?"
+        "Doc: AI is artificial intelligence..."
+        → Score = 0.92
+    User query 
+        ↓
+    Retriever (bi-encoder, lấy top 10 hoặc 20)
+        ↓
+    Cross-Encoder (re-rank lại)
+        ↓
+    Lấy top 3 tốt nhất
+        ↓
+    LLM

@@ -1,0 +1,24 @@
+Yêu cầu:
+• Hỗ trợ upload nhiều PDF cùng lúc
+• Lưu trữ metadata cho mỗi document (tên file, ngày upload, loại)
+• Cho phép filter theo metadata khi search
+• Hiển thị câu trả lời từ document nào
+
+- Đầu tiên là cho chọn multifile sau khi chọn được thì nó lưu dưới dạng FileList có các obj là File sau đó đẩy sang backend
+
+- upload_pdf() 
+    - Khi gọi loader pdf và word ta thêm các metadata cho mỗi chunk được cắt
+        for i, chunk in enumerate(chunks):
+            chunk.metadata.update({
+                "file_name": file_name,              # tên file
+                "file_type": "pdf",               # loại file
+                "chunk_index": i,                 # thứ tự chunk
+                "upload_time": upload_time,       # thời gian upload
+            })
+    
+- Khi user chọn 1 filter tức là chọn 1 tên file 
+    - Đẩy file_name đó qua cho backend
+    - backend mỗi khi hỏi thì sẽ tạo filter_metadata = {"file_name": f"{selected_file_filter}"}
+    - Sau đó tạo lại retriever (Tức là lấy lại các top k dựa trên lọc hybridsearch với metadata = với file_name chọn)
+
+- Ý 4 thì dùng lại cái highlight PDF
