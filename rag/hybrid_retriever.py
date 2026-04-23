@@ -4,7 +4,7 @@ from rag.retriever import get_retriever
 from langchain.schema import BaseRetriever
 from typing import Any, Optional
 
-class FilteredVectorRetriever(BaseRetriever):
+class FilteredVectorRetriever(BaseRetriever): # Custom lại Retriever với vector
     vectorstore: Any
     k: int
     fetch_k: int
@@ -12,7 +12,6 @@ class FilteredVectorRetriever(BaseRetriever):
 
     def _get_relevant_documents(self, query, *, run_manager=None):
         docs = self.vectorstore.similarity_search(query, k=self.fetch_k)
-
         if self.filter_metadata:
             docs = [
                 d for d in docs
@@ -50,12 +49,12 @@ def create_hybrid_retriever(vectorstore, chunks, top_k= 3, fetch_k=20, bm25_weig
         chunks = []
 
     bm25_retriever = BM25Retriever.from_documents(chunks) # keyword search
-    bm25_retriever.k = top_k
+    bm25_retriever.k = fetch_k
     
     # vector_retriever = get_retriever(vectorstore, k=top_k, fetch_k=fetch_k) # semantic search
     vector_retriever = FilteredVectorRetriever(
         vectorstore=vectorstore,
-        k=top_k,
+        k=fetch_k,
         fetch_k=fetch_k,
         filter_metadata=filter_metadata
     )

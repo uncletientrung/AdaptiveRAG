@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 import logging
 import uuid
-
+import time
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -165,9 +165,12 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
                 rag_chain.retriever = retriever # Khi user đổi filter để hỏi thì sửa lại RetrieverQA
 
             logger.info(f"User: {query}")
+            start = time.time()
             result = rag_chain.invoke({ # Đặt câu hỏi và sinh câu trả lời và source_documents nếu bật
                 "question": query
             })
+            end = time.time()
+            print(f"Latency: {end - start}s")
             # result["source_documents"] = result["source_documents"][:top_k_global]
             logger.info(f"Bot: Trả lời thành công")
             logger.info("------------------------------------------------------------")

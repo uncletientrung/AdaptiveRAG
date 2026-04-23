@@ -28,3 +28,35 @@ Cross-Encoder là gì?
     Lấy top 3 tốt nhất
         ↓
     LLM
+
+File pipeline: 
+    base_retriever = create_hybrid_retriever(
+        vectorstore=vectorstore,
+        chunks=chunks,
+        top_k=fetch_k, 
+        fetch_k=fetch_k,
+        bm25_weight=0.35,  vector_weight=0.65 
+    )
+
+    reranker = CrossEncoderReranker()
+    hybrid_retriever = RerankRetriever(
+        base_retriever=base_retriever,
+        reranker=reranker,
+        top_k=top_k,
+        fetch_k=fetch_k
+    )
+
+• Thêm bước re-ranking sau retrieval
+- Bên trong create_hybrid_retriever() ta đang lấy các chunk với top_k = fetch_k mục đích là lấy hết cái có thể tham khảo 
+- Sau đó khi vào rerank
+
+hybrid_retriever.py // Trả về retriever (bộ tài liệu tìm kiếm) của BM25 + vectorstore với top_k = fetch_k
+        ↓
+reranker.py         // File này sử dụng model để lấy các doc dựa top k 
+        ↓
+rerank_retriever.py // có base_retriever là retriever được lấy từ hybrid_retriever
+                 // có rerank là CrossEncoder là class model dùng để lấy top các doc, có top_k và fetch_k
+                 //  Dùng docs = self.base_retriever.get_relevant_documents(query) truyền query vào để lấy các doc liên quan
+                 // Sau đó reranked_docs = self.reranker.rerank(query, docs, self.top_k) Là để lấy top 3 dựa trên doc
+        ↓
+Kết quả là Retriever sau khi đã rerank

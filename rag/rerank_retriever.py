@@ -8,12 +8,8 @@ class RerankRetriever(BaseRetriever):
     reranker: object = Field(...)
     top_k: int = 3
     fetch_k: int = 20
-
     def get_relevant_documents(self, query: str) -> List[Document]:
-        # Bước 1: retrieve nhiều doc
         docs = self.base_retriever.get_relevant_documents(query)
-
-        # Bước 2: rerank
+        docs = docs[:15] # Giới hạn
         reranked_docs = self.reranker.rerank(query, docs, self.top_k)
-
         return reranked_docs
