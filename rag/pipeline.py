@@ -8,11 +8,13 @@ from rag.llm import get_llm
 from rag.promt import VIETNAMESE_PROMPT
 from rag.hybrid_retriever import create_hybrid_retriever
 import os
+from rag.reranker import CrossEncoderReranker
+from rag.rerank_retriever import RerankRetriever
 
 
 def build_rag_pipeline(
         list_file_path, chunk_size=1000, chunk_overlap=200,
-        top_k=3, fetch_k=20, temperature=0.7,
+        top_k=3, fetch_k=15, temperature=0.7,
         filter_metadata=None # Dùng khi nếu user chọn filter cho multi file
     ):
     
@@ -29,14 +31,30 @@ def build_rag_pipeline(
 
     vectorstore = create_faiss_vectorstore(all_chunks) # Tạo FAISS obj
     # retriever = get_retriever(vectorstore, top_k, fetch_k, filter_metadata) # Gán FAISS sang retriever
-    hybrid_retriever = create_hybrid_retriever(
+    # hybrid_retriever = create_hybrid_retriever(   # Sử dụng bi-encoder
+    #     vectorstore=vectorstore,
+    #     chunks=all_chunks,
+    #     top_k=top_k,
+    #     fetch_k=fetch_k,
+    #     bm25_weight=0.35,   
+    #     vector_weight=0.65
+    # )
+    base_retriever = create_hybrid_retriever(
         vectorstore=vectorstore,
-        chunks=all_chunks,
-        top_k=top_k,
+        chunks=chunks,
+        top_k=fetch_k, 
         fetch_k=fetch_k,
-        bm25_weight=0.35,   
-        vector_weight=0.65
+        bm25_weight=0.35,  vector_weight=0.65 
     )
+
+    reranker = CrossEncoderReranker()
+    hybrid_retriever = RerankRetriever(
+        base_retriever=base_retriever,
+        reranker=reranker,
+        top_k=top_k,
+        fetch_k=fetch_k
+    )
+
     llm = get_llm(temperature=temperature) # Tạo Ollama
     chatMemory = ConversationBufferMemory(
         memory_key="chat_history",
