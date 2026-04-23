@@ -1,0 +1,6 @@
+Câu hỏi 10: Advanced RAG với Self-RAG
+Yêu cầu:
+• Implement Self-RAG: LLM tự đánh giá câu trả lời
+• Query rewriting: Tự động cải thiện câu hỏi
+• Multi-hop reasoning Truy vấn nhiều bước
+• Confidence scoring    Gán độ tin cậy
