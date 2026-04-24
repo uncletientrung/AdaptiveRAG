@@ -105,6 +105,7 @@ def build_rag_pipeline(
     qa_chain.memory.clear() # reset memory mỗi lần 
     return (
         qa_chain,
+        hybrid_retriever,
         vectorstore,
         all_chunks,
         all_documents,

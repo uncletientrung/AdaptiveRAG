@@ -11,6 +11,8 @@ from rag.pipeline import build_rag_pipeline, query_rewriter, multi_hop_reasoning
 from rag.retriever import get_retriever
 from rag.llm import get_llm
 from rag.hybrid_retriever import create_hybrid_retriever
+from rag.corag import build_coRag
+
 
 rag_chain = None
 current_pdf_path = None
@@ -23,7 +25,7 @@ all_chunks_global =[]
 uploaded_file_name = []
 # Thêm để xử lý self-RAG
 llm = None
-
+hybrid_retriever = None
 
 def get_or_create_chat_sessions(request):
     if 'chat_sessions' not in request.session:
@@ -64,7 +66,7 @@ def index(request): # <WSGIRequest: GET '/'>
 def upload_pdf(request): # request <WSGIRequest: POST '/upload/'>
     global rag_chain, current_pdf_path, logger
     global vectorstore_global, top_k_global, fetch_k_global
-    global all_chunks_global, uploaded_file_name, llm
+    global all_chunks_global, uploaded_file_name, llm, hybrid_retriever
     
     if request.method == "POST":
         chunk_size = int(request.POST.get("chunk_size", 1000))
@@ -100,7 +102,7 @@ def upload_pdf(request): # request <WSGIRequest: POST '/upload/'>
                         f.write(chunk)
                 list_file_path.append(path)
 
-            qa_chain, vectorstore, chunks, documents = build_rag_pipeline(list_file_path, chunk_size,chunk_overlap,top_k,fetch_k,temperature)
+            qa_chain, hybrid_retriever, vectorstore, chunks, documents = build_rag_pipeline(list_file_path, chunk_size,chunk_overlap,top_k,fetch_k,temperature)
             rag_chain = qa_chain # RetrieverQA
             llm = get_llm(temperature=temperature) # Tạo Ollama
             vectorstore_global = vectorstore
@@ -109,6 +111,9 @@ def upload_pdf(request): # request <WSGIRequest: POST '/upload/'>
             all_chunks_global = chunks
             current_pdf_path = list_file_path  # Đường dẫn pdf
             uploaded_file_name = [os.path.basename(p) for p in list_file_path]
+            hybrid_retriever =hybrid_retriever
+
+
 
             logger.info(f"Pages: {len(documents)}")
             logger.info(f"Chunks: {len(chunks)}")
@@ -149,7 +154,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
      # urls gọi hàm này thì hàm này nhận request
     global rag_chain, current_pdf_path, logger
     global vectorstore_global, top_k_global, fetch_k_global
-    global all_chunks_global, uploaded_file_name, llm
+    global all_chunks_global, uploaded_file_name, llm, hybrid_retriever
     if request.method == "POST":
         if rag_chain is None: # Kiểm tra RetrieverQA
             if logger:
@@ -175,6 +180,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
             logger.info(f"Câu hỏi viết lại: {rewritter_query}")
             final_answer, all_document, confidence = multi_hop_reasoning( rag_chain, llm, rewritter_query) # Lấy final aw và all source
 
+            build_coRag(rag_chain, hybrid_retriever, llm, rewritter_query, True)
             logger.info(f"Bot: Trả lời thành công")
             logger.info("------------------------------------------------------------")
 
@@ -322,7 +328,7 @@ def switch_document(request):
                     path = os.path.join("data", file_name)
                     list_file_path.append(path)
 
-            qa_chain, vectorstore, chunks, documents = build_rag_pipeline((list_file_path), chunk_size,chunk_overlap,top_k,fetch_k,temperature)
+            qa_chain, hybrid_retriever, vectorstore, chunks, documents = build_rag_pipeline((list_file_path), chunk_size,chunk_overlap,top_k,fetch_k,temperature)
             rag_chain = qa_chain # RetrieverQA
             llm = get_llm()
             vectorstore_global = vectorstore
