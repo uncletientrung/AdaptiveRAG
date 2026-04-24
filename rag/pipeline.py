@@ -2,6 +2,9 @@ from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from document_processing.pdf_loader import load_and_split_pdf
 from document_processing.docx_loader import load_and_split_docx
+from document_processing.ocr_loader import ocr_pdf
+from document_processing.ocr_and_pdf_loader import ocr_and_pdf_loader
+
 from vector_store.faiss_store import create_faiss_vectorstore
 from rag.retriever import get_retriever
 from rag.llm import get_llm
@@ -45,7 +48,13 @@ def build_rag_pipeline(
     for file_path in list_file_path:
         file_format = os.path.splitext(file_path)[1].lower()
         if file_format == ".pdf":
-            chunks, documents = load_and_split_pdf(file_path, chunk_size, chunk_overlap)  # Load pdf và cắt chunk
+            chunks, documents = ocr_and_pdf_loader(file_path, chunk_size, chunk_overlap)  # Load pdf và cắt chunk
+            
+            print('ALL TEXT')
+            print(chunks)
+            print('DOCUMENT OCR')
+            print(documents)
+
         elif file_format == ".docx":
             chunks, documents = load_and_split_docx(file_path, chunk_size, chunk_overlap)
         all_chunks.extend(chunks) 
