@@ -135,12 +135,8 @@ def multi_hop_reasoning(rag_chain, llm, written_query):
         result = rag_chain.invoke({"question": q})
         collected_docs.extend(result.get("source_documents", []))
 
-    # remove duplicates
-    collected_docs = deduplicate_docs(collected_docs)
-
-    # Step 4: FINAL synthesis (🔥 quan trọng)
-    context = "\n\n".join([d.page_content for d in collected_docs])
-
+    collected_docs = documents_duyNhat(collected_docs) # Lấy docs duy nhất
+    context = "\n\n".join([d.page_content for d in collected_docs]) # Tạo mảng ngữ cảnh với 2 cái space
     prompt = f"""
         Dựa trên các thông tin sau, hãy trả lời câu hỏi:
 
@@ -275,15 +271,13 @@ def get_llm_text(response): # Kiểm tra xem có hàm content không
     if hasattr(response, "content"):
         return response.content
     return response
-def deduplicate_docs(docs):
+
+def documents_duyNhat(docs): # Lấy docs với page_content duy nhất
     seen = set()
     unique_docs = []
     for doc in docs:
-        # dùng nội dung làm key để kiểm tra trùng
-        key = doc.page_content.strip()
-
+        key = doc.page_content.strip()         # dùng nội dung làm key để kiểm tra trùng
         if key not in seen:
             seen.add(key)
             unique_docs.append(doc)
-
     return unique_docs

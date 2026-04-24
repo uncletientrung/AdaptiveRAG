@@ -4,3 +4,35 @@ Yêu cầu:
 • Query rewriting: Tự động cải thiện câu hỏi
 • Multi-hop reasoning Truy vấn nhiều bước
 • Confidence scoring    Gán độ tin cậy
+
+• Implement Self-RAG: LLM tự đánh giá câu trả lời
+    - Là hàm self_rag_evaluate() ở pipe được dùng để đánh giá câu trả lời thông qua promt + question + documents + answer
+        // Nó trả về 1 object response. Cái code này đang dùng llm để đánh giá output dựa trên retrieved context
+        // Còn build_pipe_rag là dùng LLM để retrieve data
+        // Kết quả trả về là độ tin cậy 0-1
+
+• Query rewriting: Tự động cải thiện câu hỏi
+    - Là hàm query_rewriter() dùng LLM để retriever context sinh ra 1 object response biến thành string nó là câu hỏi được viết lại
+
+• Multi-hop reasoning Truy vấn nhiều bước
+    query_rewriter() //  B1: Dùng để lấy câu hỏi được cải thiện
+        ↓
+    result = rag_chain.invoke({"question": written_query}) // B2: Hỏi với câu hỏi được cải thiện
+        ↓
+    self_rag_evaluate()  // B3: Đánh giá lại câu trả lời vừa nhận được nếu nó trên 0.7 thì lấy Nó
+        ↓
+    sub_queries = sub_query(llm, written_query) // B4: Nếu < 0.7 độ tin cậy thì nó sẽ cắt câu hỏi ra thành các câu hỏi nhỏ 
+                        // Nếu không cắt được thì lấy cái gốc 
+        ↓ 
+    collected_docs.extend(result.get("source_documents", [])) 
+                        // Sau khi mỗi lần trả lời câu hỏi nhỏ thì sẽ + source_documents vào collected_docs. collected_docs = [] trước khi thêm
+        ↓
+    collected_docs = deduplicate_docs(collected_docs) // deduplicate_docs() mục đích là chỉ lấy các documents với pagecontent duy nhất                                         
+        ↓
+    B5: Chính là trộn lại các ngữ cảnh lại với nhau
+        ↓
+    prompt          // B6: Sử dụng LLM dựa trên retrieved context + context tổng hơp + câu hỏi cải thiện ban đầu 
+                    // Để sinh ra câu trả lời lần 2
+    B7: self_rag_evaluate // Đánh giá lại câu trả lời lần 2
+    
+    
