@@ -1,0 +1,18 @@
+Ý tưởng là load hết bằng PDF xem thử trang nào ký tự ít thì load bằng OCR
+
+B1: Load file bằng PDF trước để lấy được documents (gồm metadata và pagecontent), trong metadata có thuộc tính page để xác định số 
+                    // trang
+    ↓
+B2: covert tất cả các trang của file PDF thành ảnh
+    ↓
+B3: Duyệt tất cả các trang của pdf for i, page_doc in enumerate(page_docs):
+    ↓
+B4: Nếu trang đó có hơn 100 ký tự thì lấy trang đó bằng load_pdf
+    Nếu trang đó dưới 100 ký tự thì lấy text dựa trên ảnh của trang đó
+        ocr_text = pytesseract.image_to_string(images[i], lang="vie+eng") 
+    ↓
+B5: Định nghĩa RecursiveCharacterTextSplitter với chunks size + overlap
+    ↓
+B6: Cắt dựa trên các documents đã lấy định nghĩa các chunk 
+    ↓
+B7: return chunks, final_docs
