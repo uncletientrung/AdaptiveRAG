@@ -227,7 +227,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
                 "confidence": confidence,
                 "rewritten_query": rewritter_query,
                 "pdf_path": current_pdf_path[0] if isinstance(current_pdf_path, list) else current_pdf_path,
-                "source_documents": sources,
+                "source_documents": sources[:3],
                 "chat_sessions": chat_sessions,
                 "current_chat_id": request.session.get("current_chat_id")
             })

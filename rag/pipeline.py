@@ -232,54 +232,52 @@ def self_rag_evaluate(llm, question, answer, contexts):
                                for i, doc in enumerate(contexts)])
     
     prompt = f"""Bạn là một Self-RAG Evaluator nghiêm ngặt và khách quan bậc cao.
-Nhiệm vụ của bạn là đánh giá chất lượng câu trả lời dựa trên context được cung cấp.
+        Nhiệm vụ của bạn là đánh giá chất lượng câu trả lời dựa trên context được cung cấp.
 
-Tiêu chí đánh giá (đánh giá theo thang điểm chi tiết):
+        Tiêu chí đánh giá (đánh giá theo thang điểm chi tiết):
 
-1. **Groundedness / Faithfulness (Không bịa đặt)**: 
-   - Câu trả lời có hoàn toàn dựa trên thông tin có trong Context không?
-   - Mọi claim/fact trong câu trả lời đều phải được hỗ trợ trực tiếp bởi Context.
-   - Không được thêm thông tin từ kiến thức chung hoặc suy luận quá mức.
+        1. **Groundedness / Faithfulness (Không bịa đặt)**: 
+        - Câu trả lời có hoàn toàn dựa trên thông tin có trong Context không?
+        - Mọi claim/fact trong câu trả lời đều phải được hỗ trợ trực tiếp bởi Context.
+        - Không được thêm thông tin từ kiến thức chung hoặc suy luận quá mức.
 
-2. **Correctness (Tính chính xác)**:
-   - Câu trả lời có đúng và chính xác với thông tin trong Context không?
-   - Có mâu thuẫn với Context không?
+        2. **Correctness (Tính chính xác)**:
+        - Câu trả lời có đúng và chính xác với thông tin trong Context không?
+        - Có mâu thuẫn với Context không?
 
-3. **Completeness (Tính đầy đủ)**:
-   - Câu trả lời có bao quát đầy đủ các thông tin quan trọng cần thiết để trả lời câu hỏi không?
-   - Có bỏ sót thông tin quan trọng có trong Context không?
+        3. **Completeness (Tính đầy đủ)**:
+        - Câu trả lời có bao quát đầy đủ các thông tin quan trọng cần thiết để trả lời câu hỏi không?
+        - Có bỏ sót thông tin quan trọng có trong Context không?
 
-4. **Relevance (Tính liên quan)**:
-   - Câu trả lời có trực tiếp giải quyết câu hỏi không?
+        4. **Relevance (Tính liên quan)**:
+        - Câu trả lời có trực tiếp giải quyết câu hỏi không?
 
-**Quy tắc nghiêm ngặt**:
-- Nếu câu trả lời chứa **bất kỳ thông tin nào không có trong Context** → điểm giảm mạnh (hallucination).
-- Nếu câu trả lời mâu thuẫn với Context → điểm rất thấp.
-- Nếu câu trả lời chỉ đúng một phần → điểm trung bình.
-- Chỉ đạt điểm cao khi **toàn bộ** nội dung đều được hỗ trợ bởi Context và trả lời đầy đủ + chính xác.
+        **Quy tắc nghiêm ngặt**:
+        - Nếu câu trả lời chứa **bất kỳ thông tin nào không có trong Context** → điểm giảm mạnh (hallucination).
+        - Nếu câu trả lời mâu thuẫn với Context → điểm rất thấp.
+        - Nếu câu trả lời chỉ đúng một phần → điểm trung bình.
+        - Chỉ đạt điểm cao khi **toàn bộ** nội dung đều được hỗ trợ bởi Context và trả lời đầy đủ + chính xác.
 
-Hãy suy nghĩ từng bước một (Chain-of-Thought):
+        Hãy suy nghĩ từng bước một (Chain-of-Thought):
 
-Bước 1: Phân tích các claim chính trong câu trả lời.
-Bước 2: Kiểm tra từng claim có được hỗ trợ bởi Context không (trích dẫn cụ thể nếu có).
-Bước 3: Đánh giá tổng thể theo 4 tiêu chí trên.
-Bước 4: Đưa ra điểm số cuối cùng.
+        Bước 1: Phân tích các claim chính trong câu trả lời.
+        Bước 2: Kiểm tra từng claim có được hỗ trợ bởi Context không (trích dẫn cụ thể nếu có).
+        Bước 3: Đánh giá tổng thể theo 4 tiêu chí trên.
+        Bước 4: Đưa ra điểm số cuối cùng.
 
-Câu hỏi:
-{question}
+        Câu hỏi:
+        {question}
 
-Context:
-{context_text}
+        Context:
+        {context_text}
 
-Câu trả lời cần đánh giá:
-{answer}
+        Câu trả lời cần đánh giá:
+        {answer}
 
-Bây giờ, suy nghĩ kỹ và trả về **CHỈ** một số thập phân từ 0.00 đến 1.00 theo format sau:
-
-Điểm: X.XX
-
-Giải thích ngắn gọn (tùy chọn, tối đa 2-3 câu):
-"""
+        Bây giờ, suy nghĩ kỹ và trả về **CHỈ** một số thập phân từ 0.00 đến 1.00 theo format sau:
+        Điểm: X.XX
+        Giải thích ngắn gọn (tùy chọn, tối đa 2-3 câu):
+        """
 
     response = llm.invoke(prompt)
     text = get_llm_text(response)
