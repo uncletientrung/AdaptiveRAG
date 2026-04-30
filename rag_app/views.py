@@ -7,7 +7,7 @@ import time
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from rag.pipeline import build_rag_pipeline, query_rewriter, multi_hop_reasoning, self_rag_evaluate
+from rag.pipeline import build_rag_pipeline, query_rewriter, build_multi_hop_pipeline
 from rag.retriever import get_retriever
 from rag.llm import get_llm
 from rag.hybrid_retriever import create_hybrid_retriever
@@ -126,7 +126,7 @@ def upload_pdf(request): # request <WSGIRequest: POST '/upload/'>
                 "id": chat_id,
                 "file": file_title,
                 "files": uploaded_file_name,
-                "created_at": datetime.now().strftime("%H:%M"),
+                "created_at": datetime.now().strftime("%H:%M %d/%m/%Y"),
                 "history": []
             })
 
@@ -178,7 +178,7 @@ def ask_question(request): # request <WSGIRequest: POST '/ask/'>
             # Xử lý self-RAG
             rewritter_query = query_rewriter(llm, query) # Viết lại câu hỏi
             logger.info(f"Câu hỏi viết lại: {rewritter_query}")
-            final_answer, all_document, confidence = multi_hop_reasoning( rag_chain, llm, rewritter_query) # Lấy final aw và all source
+            final_answer, all_document, confidence = build_multi_hop_pipeline( rag_chain, llm, query) # Lấy final aw và all source
 
             # build_coRag(rag_chain, hybrid_retriever, llm, rewritter_query, True)
             logger.info(f"Bot: Trả lời thành công")

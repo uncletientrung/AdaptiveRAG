@@ -14,6 +14,7 @@ import json
 import re
 from rag.reranker import CrossEncoderReranker
 from rag.rerank_retriever import RerankRetriever
+from rag.self_rag_evaluate import self_rag_evaluate
 
 def query_rewriter(llm, query): # Viết lại câu hỏi
     prompt = f"""
@@ -112,21 +113,31 @@ def build_rag_pipeline(
     )
 
 
-
-def multi_hop_reasoning(rag_chain, llm, written_query):
+def build_multi_hop_pipeline(rag_chain, llm, written_query):
     result = rag_chain.invoke({"question": written_query})
+    chat_history = rag_chain.memory.chat_memory.messages
     final_answer = result["answer"]
     all_source = result.get("source_documents", [])
+    if len(final_answer) < 30 and "không" in final_answer.lower():
+        print("Trả lời quá ngắn")
+        return multi_hop_reasoning(rag_chain, llm, written_query, chat_history)
+    if "không có thông tin" in final_answer.lower():
+        print("Không có câu trả lời")
+        return multi_hop_reasoning(rag_chain, llm, written_query, chat_history)
+    
     # Đánh giá lần 1
-    confidence = self_rag_evaluate(llm, written_query, final_answer, all_source)
+    confidence = self_rag_evaluate(written_query, final_answer, all_source)
     print("---------- Đánh giá lần 1 ---------------")
     print(confidence)
     print(written_query)
     print(final_answer)
+    if confidence < 0.7:
+        return multi_hop_reasoning(rag_chain, llm, written_query, chat_history)
+    
+    return final_answer, all_source, confidence
 
-    if confidence > 0.7:
-        return final_answer, all_source, confidence
 
+def multi_hop_reasoning(rag_chain, llm, written_query, chat_history):
     # Tách câu hỏi và đánh giá lần 2
     sub_queries = sub_query(llm, written_query)
     print("---------Danh sách câu hỏi sub -------------")
@@ -140,48 +151,16 @@ def multi_hop_reasoning(rag_chain, llm, written_query):
 
     collected_docs = documents_duyNhat(collected_docs) # Lấy docs duy nhất
     context = "\n\n".join([d.page_content for d in collected_docs]) # Tạo mảng ngữ cảnh với 2 cái space
-    prompt = f"""
-        Dựa trên các thông tin sau, hãy trả lời câu hỏi:
-
-        Câu hỏi: {written_query}
-
-        Tài liệu:
-        {context}
-        
-        Quy tắc:
-            - Chỉ sử dụng thông tin trong Context (Tài liệu)
-            - Không suy diễn
-            - Không thêm thông tin bên ngoài
-            - Nếu không có thông tin thì trả lời:
-            "Tôi không có thông tin về vấn đề này trong tài liệu được cung cấp."
-                                                    
-        Format:
-            Giới thiệu ngắn (1 câu)
-            Thông tin chính:
-            - ...
-            - ...
-            - ...
-                                                            
-        Yêu cầu trình bày:
-            - Trả lời bằng tiếng Việt
-            - Ngắn gọn và dễ đọc khoảng 4-5 câu
-            - Có câu mở đầu giới thiệu đối tượng
-            - Sau đó liệt kê thông tin bằng gạch đầu dòng
-            - Không liệt kê thô như PDF
-            - Không được in ra các tiêu đề như:
-            "Giới thiệu ngắn (1 câu)"
-            "Thông tin chính"
-            - Không được nhắc đến từ "nguồn", "cid"
-
-
-        Trả lời:
-    """
-
+    prompt = VIETNAMESE_PROMPT.format(
+        context=context,
+        question=written_query,
+        chat_history =chat_history,
+    )
     response = llm.invoke(prompt)
     final_answer = get_llm_text(response)
 
     # Đánh giá lần 2
-    confidence = self_rag_evaluate(llm, written_query, final_answer, collected_docs)
+    confidence = self_rag_evaluate( written_query, final_answer, collected_docs)
     print("---------- Đánh giá lần 2 ---------------")
     print(confidence)
     print(final_answer)
@@ -189,6 +168,8 @@ def multi_hop_reasoning(rag_chain, llm, written_query):
     return final_answer, collected_docs, confidence
 
 def sub_query(llm, query):
+    query = query_rewriter(llm, query)
+
     prompt = f"""
         Bạn là hệ thống phân rã câu hỏi cho multi-hop reasoning.
 
@@ -232,43 +213,76 @@ def sub_query(llm, query):
         print("Parse error:", e)
         return [query]
 
-def self_rag_evaluate(llm, question, answer, contexts):
-    context_text = "\n".join([doc.page_content for doc in contexts])
+def self_rag_evaluate2(llm, question, answer, contexts):
+    context_text = "\n\n".join([f"--- Document {i+1} ---\n{doc.page_content}" 
+                               for i, doc in enumerate(contexts)])
+    
+    prompt = f"""Bạn là một Self-RAG Evaluator nghiêm ngặt và khách quan bậc cao.
+Nhiệm vụ của bạn là đánh giá chất lượng câu trả lời dựa trên context được cung cấp.
 
-    prompt = f"""
-        Bạn là hệ thống đánh giá câu trả lời (Self-RAG evaluator).
+Tiêu chí đánh giá (đánh giá theo thang điểm chi tiết):
 
-        Nhiệm vụ:
-        Đánh giá mức độ đáng tin cậy của câu trả lời dựa trên context.
+1. **Groundedness / Faithfulness (Không bịa đặt)**: 
+   - Câu trả lời có hoàn toàn dựa trên thông tin có trong Context không?
+   - Mọi claim/fact trong câu trả lời đều phải được hỗ trợ trực tiếp bởi Context.
+   - Không được thêm thông tin từ kiến thức chung hoặc suy luận quá mức.
 
-        Tiêu chí:
-        - Đúng thông tin (correctness)
-        - Có dựa trên context (groundedness)
-        - Không bịa
+2. **Correctness (Tính chính xác)**:
+   - Câu trả lời có đúng và chính xác với thông tin trong Context không?
+   - Có mâu thuẫn với Context không?
 
-        Trả về CHỈ 1 số từ 0.00 đến 1.00:
-        - 0.00 = sai hoàn toàn
-        - 1.00 = rất chính xác và đầy đủ
+3. **Completeness (Tính đầy đủ)**:
+   - Câu trả lời có bao quát đầy đủ các thông tin quan trọng cần thiết để trả lời câu hỏi không?
+   - Có bỏ sót thông tin quan trọng có trong Context không?
 
-        Câu hỏi:
-        {question}
+4. **Relevance (Tính liên quan)**:
+   - Câu trả lời có trực tiếp giải quyết câu hỏi không?
 
-        Context:
-        {context_text}
+**Quy tắc nghiêm ngặt**:
+- Nếu câu trả lời chứa **bất kỳ thông tin nào không có trong Context** → điểm giảm mạnh (hallucination).
+- Nếu câu trả lời mâu thuẫn với Context → điểm rất thấp.
+- Nếu câu trả lời chỉ đúng một phần → điểm trung bình.
+- Chỉ đạt điểm cao khi **toàn bộ** nội dung đều được hỗ trợ bởi Context và trả lời đầy đủ + chính xác.
 
-        Câu trả lời:
-        {answer}
+Hãy suy nghĩ từng bước một (Chain-of-Thought):
 
-        Điểm:
-    """
+Bước 1: Phân tích các claim chính trong câu trả lời.
+Bước 2: Kiểm tra từng claim có được hỗ trợ bởi Context không (trích dẫn cụ thể nếu có).
+Bước 3: Đánh giá tổng thể theo 4 tiêu chí trên.
+Bước 4: Đưa ra điểm số cuối cùng.
+
+Câu hỏi:
+{question}
+
+Context:
+{context_text}
+
+Câu trả lời cần đánh giá:
+{answer}
+
+Bây giờ, suy nghĩ kỹ và trả về **CHỈ** một số thập phân từ 0.00 đến 1.00 theo format sau:
+
+Điểm: X.XX
+
+Giải thích ngắn gọn (tùy chọn, tối đa 2-3 câu):
+"""
+
     response = llm.invoke(prompt)
     text = get_llm_text(response)
-
+    
     try:
-        score = float(re.findall(r"\d+\.?\d*", text)[0])
+        # Tìm số thập phân (hỗ trợ cả 0.0 và 1.00, 0.85...)
+        scores = re.findall(r"Điểm:\s*(\d+\.?\d*)|(\d+\.?\d*)", text)
+        for s in scores:
+            score_str = next((x for x in s if x), None)
+            if score_str:
+                score = float(score_str)
+                return min(max(score, 0.0), 1.0)
+        # Fallback: tìm bất kỳ số nào hợp lệ
+        score = float(re.findall(r"\d+\.?\d*", text)[-1])
         return min(max(score, 0.0), 1.0)
     except:
-        return 0.5
+        return 0.5  # fallback an toàn
     
 def get_llm_text(response): # Kiểm tra xem có hàm content không
     if hasattr(response, "content"):

@@ -17,3 +17,5 @@ sentence-transformers
 pytesseract 
 pdf2image 
 pillow
+ragas
+datasets

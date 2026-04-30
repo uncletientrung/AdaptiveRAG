@@ -30,7 +30,7 @@
             </div>
 
             <div class="section">
-                <h3><i class="fas fa-cog"></i> Thông tin cài đặt</h3>
+                <h3><i class="fas fa-cog"></i> Thông số cài đặt</h3>
                 <div class="settings">
                     <div class="setting-item">
                         <span>Chunk Size</span>
@@ -60,6 +60,7 @@
                 <div class="settings-actions">
                     <button id="editSettingsBtn" class="btn-edit">Chỉnh sửa</button>
                     <button id="saveSettingsBtn" class="btn-save" style="display:none;">Lưu</button>
+                    <button id="cancelSettingsBtn" class="btn-cancel-setting" style="display:none;">Đóng</button>
                 </div>
             </div>
 
@@ -234,12 +235,14 @@
         let temperature = document.getElementById("temperature")
         const editBtn = document.getElementById("editSettingsBtn");
         const saveBtn = document.getElementById("saveSettingsBtn");
+        const cancelBtnSettings = document.getElementById("cancelSettingsBtn");
         const settingInputs = document.querySelectorAll(".setting-item input"); // Danh sách các setting
         settingInputs.forEach(i => i.disabled = true);
 
         let pdfDoc = null;
         const canvas = document.getElementById('pdfCanvas');
         const ctx = canvas.getContext('2d');
+        
 
         // ==================== HÀM CHUNG ====================
         function toggleInput(enabled, check_history = false) {
@@ -267,9 +270,11 @@
             if(enabled){
                 editBtn.style.display = "none";
                 saveBtn.style.display = "block";
+                cancelBtnSettings.style.display = "block";
             }else{
                 editBtn.style.display = "block";
                 saveBtn.style.display = "none";
+                cancelBtnSettings.style.display = "none";
             }
             document.querySelectorAll(".setting-item").forEach(item => {
                 if (enabled) {
@@ -466,7 +471,7 @@
                         <i class="fas fa-comments"></i>
                         <div class="history-text">
                             <div class="history-title">${title}</div>
-                            <div class="history-sub">${chat.file} • ${chat.created_at}</div>
+                            <div class="history-sub">${chat.files.length} File • ${chat.created_at}</div>
                         </div>
                     </div>
 
@@ -1086,6 +1091,9 @@
         });
         editBtn.addEventListener("click", () => {
             toggleInputSetting(true);
+        });
+        cancelBtnSettings.addEventListener("click", () => {
+            toggleInputSetting(false);
         });
         saveBtn.addEventListener("click", () => {
             const chunkSizeVal = Number(chunk_size.value);

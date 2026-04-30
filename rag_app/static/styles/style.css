@@ -662,7 +662,7 @@ body {
     margin-top: 10px;
 }
 
-.btn-edit, .btn-save {
+.btn-edit, .btn-save, .btn-cancel-setting {
     flex: 1;
     padding: 10px;
     border-radius: 8px;
@@ -680,6 +680,11 @@ body {
     background: #007BFF; 
     color: white;
 }
+.btn-cancel-setting {
+    background: #6c757d;
+    color: white;
+}
+
 /* ==================== CITATION STYLES ========================================*/
 .sources-container {
     margin-top: 12px;
