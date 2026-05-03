@@ -77,7 +77,7 @@ def upload_pdf(request): # request <WSGIRequest: POST '/upload/'>
         temperature = float(request.POST.get("temperature", 0.7))
         logger = create_logger()
 
-        files = request.FILES.getlist("files") # lấy biến file PDF từ FormData từ hàm upload bên frontend.
+        files = request.FILES.getlist("files") # lấy biến các file từ FormData từ hàm upload bên frontend.
         try:
             for file in files:
                 logger.info(f"File: {file.name}")
@@ -113,8 +113,6 @@ def upload_pdf(request): # request <WSGIRequest: POST '/upload/'>
             current_pdf_path = list_file_path  # Đường dẫn pdf
             uploaded_file_name = [os.path.basename(p) for p in list_file_path]
             hybrid_retriever_global =hybrid_retriever
-
-
 
             logger.info(f"Pages: {len(documents)}")
             logger.info(f"Chunks: {len(chunks)}")

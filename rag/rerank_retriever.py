@@ -10,6 +10,6 @@ class RerankRetriever(BaseRetriever):
     fetch_k: int = 20
     def get_relevant_documents(self, query: str) -> List[Document]:
         docs = self.base_retriever.get_relevant_documents(query)
-        docs = docs[:8] # Giới hạn
+        docs = docs[:self.fetch_k] # Giới hạn
         reranked_docs = self.reranker.rerank(query, docs, self.top_k)
         return reranked_docs

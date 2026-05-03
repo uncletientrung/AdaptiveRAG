@@ -19,7 +19,6 @@ class FilteredVectorRetriever(BaseRetriever): # Custom lại Retriever với vec
                 d for d in docs
                 if d.metadata.get("file_name") == self.filter_metadata.get("file_name")
             ]
-
         return docs[:self.k]
 
 

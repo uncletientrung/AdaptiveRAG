@@ -691,7 +691,6 @@
             console.log(enableCoRAG)
             addMessage("user", question);
             questionInput.value = "";
-
             const aiMessageDiv = addMessage("ai", "Đang suy nghĩ...");
 
             try {
@@ -712,7 +711,7 @@
                         chatHistory = data.chat_sessions;
                         renderHistory();
                     }
-                    // ==================== HIỂN THỊ SOURCES + HIGHLIGHT ====================
+                    // ==================== Hiển thị src_document và highlight ====================
                     if (data.source_documents && data.source_documents.length > 0) {
                         renderSourcesInline(aiMessageDiv, data.source_documents, question, data.result, data.pdf_path || currentPdfPath);
                     }
@@ -1073,8 +1072,8 @@
                 if (modal) modal.style.display = "none";
             });
         });
-                // Mở nguồn tham khảo
-
+                
+        // Mở nguồn tham khảo
         document.getElementById("sourceModal").addEventListener('click', function(e) {
             if (e.target === this) this.style.display = "none";
         });

@@ -50,13 +50,13 @@ def build_rag_pipeline(
     for file_path in list_file_path:
         file_format = os.path.splitext(file_path)[1].lower()
         if file_format == ".pdf":
-            chunks, documents = ocr_and_pdf_loader(file_path, chunk_size, chunk_overlap)  # Load pdf và cắt chunk
+            chunks, documents = ocr_and_pdf_loader(file_path, chunk_size, chunk_overlap)
         elif file_format == ".docx":
             chunks, documents = load_and_split_docx(file_path, chunk_size, chunk_overlap)
         all_chunks.extend(chunks) 
         all_documents.extend(documents)
 
-    vectorstore = create_faiss_vectorstore(all_chunks) # Tạo FAISS obj
+    vectorstore = create_faiss_vectorstore(all_chunks) # Sử dụng embedding để chuyển các chunks thành vector db rồi lưu vào FAISS
     # retriever = get_retriever(vectorstore, top_k, fetch_k, filter_metadata) # Gán FAISS sang retriever
     # hybrid_retriever = create_hybrid_retriever(   # Sử dụng bi-encoder
     #     vectorstore=vectorstore,
