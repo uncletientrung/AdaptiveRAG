@@ -260,6 +260,7 @@
                 questionInput.placeholder = "Nhập câu hỏi của bạn về tài liệu PDF...";
                 askBtn.style.backgroundColor = "#007BFF";
                 coRAGOption.style.display = "flex"
+                statusBar.style.display = "flex";
             } else {
                 questionInput.disabled = true;
                 askBtn.disabled = true;
@@ -268,6 +269,7 @@
                 } else {
                     questionInput.placeholder = "Không thể gửi tin nhắn khi đang xem lịch sử/ đổi tài liệu";
                 }
+                statusBar.style.display = "none";
                 coRAGOption.style.display = "none"
                 askBtn.style.backgroundColor = "#6c757d";
             }
@@ -340,18 +342,16 @@
             document.getElementById("modalContent").textContent = fullText;
             document.getElementById("sourceModal").style.display = "flex";
         }
-        // ==================== Dialog Confirm ====================
-        function confirmCustom(message) { // Dialog confirm
+        // ==================== Dialog Confirm trả về T/F ====================
+        function confirmCustom(message) {
             return new Promise((resolve) => {
                 const dialog = document.getElementById("confirmDialog");
                 const msg = document.getElementById("confirmMessage");
-
                 msg.innerHTML = message;
                 dialog.classList.add("show");
 
                 const confirmBtn = document.getElementById("confirmBtn");
                 const cancelBtn = document.getElementById("cancelBtn");
-
                 const handleConfirm = () => {
                     cleanup();
                     resolve(true);
@@ -360,20 +360,20 @@
                     cleanup();
                     resolve(false);
                 };
-                // CLICK NGOÀI
+                // Click bên ngoài
                 const handleOutsideClick = (e) => {
                     if (e.target === dialog) {
                         handleCancel();
                     }
                 };
-                // ESC
+                // Nhấn esc
                 const handleEsc = (e) => {
                     if (e.key === "Escape") {
                         handleCancel();
                     }
                 };
 
-                function cleanup() {
+                function cleanup() { // Xóa Dialog
                     dialog.classList.remove("show");
                     confirmBtn.removeEventListener("click", handleConfirm);
                     cancelBtn.removeEventListener("click", handleCancel);
@@ -452,11 +452,10 @@
             }
         });
 
-        // ==================== HÀM HIỂN THỊ LỊCH SỬ ====================
+        // ==================== HIỂN THỊ LỊCH SỬ BÊN RIGHT PANEL ====================
         function renderHistory() {
-            const historyList = document.getElementById("historyList");
+            const historyList = document.getElementById("historyList"); // List item history
             historyList.innerHTML = "";
-
             if (chatHistory.length === 0) {
                 historyList.innerHTML = `
                     <p style="text-align:center; color:#888; padding:30px 10px; font-size:14px;">
@@ -469,8 +468,7 @@
             [...chatHistory].reverse().forEach(chat => {
                 const item = document.createElement("div");
                 item.className = `history-item ${chat.id === currentChatId ? 'active' : ''}`;
-
-                const firstMsg = chat.history.find(m => m.role === "user");
+                const firstMsg = chat.history.find(m => m.role === "user"); // Tiêu đề cho thanh lịch sử
                 const title = firstMsg 
                     ? firstMsg.content.substring(0, 25) + (firstMsg.content.length > 25 ? "..." : "") 
                     : "Không có tiêu đề";
@@ -497,7 +495,7 @@
                 historyList.appendChild(item);
             });
 
-            // Gắn sự kiện xóa cho tất cả nút ×
+            // Gắn sự kiện xóa 
             document.querySelectorAll('.delete-chat-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation(); 
@@ -506,13 +504,14 @@
                 });
             });
         }
-        // Load lại toàn bộ cuộc trò chuyện vào chat area
+
+        // =========== Load lại toàn bộ cuộc trò chuyện vào chat area =========
         function loadConversation(chatId) {
             currentChatId = chatId;
             chatArea.innerHTML = "";
             const chat = chatHistory.find(c => c.id === chatId);
             if (!chat) return;
-            danhSachFileXuLy = Array.from(chat.files).map(file => file).join(", ");
+            let danhSachFileXuLy = Array.from(chat.files).map(file => file).join(", ");
             addMessage("ai", `File PDF đã được xử lý thành công!<br><strong>${danhSachFileXuLy}</strong>`);
             chat.history.forEach(msg => {
                 const msgDiv = document.createElement("div");
@@ -523,7 +522,7 @@
                  `;
                 chatArea.appendChild(msgDiv);
             });
-            if(activeChatId == currentChatId){
+            if(activeChatId == currentChatId){ // Nếu chat id được chat = với id hiện đang xem
                 toggleInput(true);
                 changeDocumentBtn.style.display = "flex";
                 toggleInputSetting(false)
@@ -537,6 +536,93 @@
             
             renderHistory();
         }
+
+        // ==================== Load history khi trang load hoặc sau upload thành công ====================
+        async function loadHistory(BoiDenItemChat = false) {
+            const res = await fetch('/history/');
+            const data = await res.json();
+            if (data.chat_sessions) {
+                 if (BoiDenItemChat) {
+                    currentChatId = data.current_chat_id;
+                } else {
+                    currentChatId = null;
+                }
+                chatHistory = data.chat_sessions;
+                renderHistory();
+            }
+        }
+
+        // ==================== Xóa 1 đoạn trò chuyện ====================
+        async function deleteChat(chatId) {
+            const ok = await confirmCustom(
+                "Bạn có chắc muốn xóa cuộc trò chuyện này?<br><small>Hành động này không thể hoàn tác.</small>"
+            );
+
+            if (!ok) return;
+            try {
+                const res = await fetch('/delete-chat/', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ remove_chat_id: chatId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    chatHistory = data.chat_sessions || [];
+                    // Nếu xóa chat đang xem thì clear chat area
+                    if (currentChatId === chatId) {
+                        chatArea.innerHTML = "";
+                        currentChatId = null;
+                        currentPdfPath = null;
+                        toggleInput(false);
+                    }
+
+                    renderHistory();
+                    showToast("Đã xóa cuộc trò chuyện", "success");
+                    createNewChat(false)
+                } else {
+                    showToast(data.message || "Xóa thất bại", "error");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Lỗi kết nối khi xóa", "error");
+            }
+        }
+
+        // ==================== Tạo chat mới ====================
+        async function createNewChat(showToast = true) {
+            chatArea.innerHTML = ""; // reload lại từ đầu
+            currentPdfPath = null;
+            currentChatId = null;
+            activeChatId = null;
+            uploadSection.style.display = "block";
+            questionInput.value = "";
+            toggleInput(false, false);
+            toggleInputSetting(false);
+            renderHistory();
+            if(showToast)
+                showToast("Đã tạo chat mới. Vui lòng upload tài liệu!", "success");
+        }
+
+        // ==================== Cập nhật filter dropdown ====================
+        function updateFileFilter(fileNames) {
+            const select = document.getElementById("fileFilterSelect");
+            const bar = document.getElementById("filterBar");
+            // Reset
+            select.innerHTML = '<option value="">-- Tất cả tài liệu --</option>';
+            if (!fileNames || fileNames.length === 0) {
+                bar.style.display = "none";
+                return;
+            }
+            fileNames.forEach(name => {
+                const opt = document.createElement("option");
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            });
+            bar.style.display = fileNames.length > 1 ? "flex" : "none";
+        }
+
+        
         // ==================== UPLOAD PDF ====================
         document.getElementById("uploadBtn").addEventListener("click", () => {
             document.getElementById("pdfUpload").click();
@@ -547,7 +633,7 @@
             if (!files || files.length === 0) return;
 
             toggleInput(false);
-            danhSachFileXuLy = Array.from(files).map(file => file.name).join(", ");
+            let danhSachFileXuLy = Array.from(files).map(file => file.name).join(", ");
             const loadingMsg = addMessage("ai", `Đang xử lý tài liệu: <strong>${danhSachFileXuLy}</strong>`);
             
             try {
@@ -563,7 +649,6 @@
 
                 const res = await fetch(`/upload/`, { method: "POST", body: formData });
                 const data = await res.json();
-
                 loadingMsg.remove();
 
                 if (data.success) {
@@ -577,7 +662,7 @@
                     document.getElementById("faissStatus").textContent = "FAISS Ready";
 
                     addMessage("ai",`<strong>${danhSachFileXuLy}</strong> đã được xử lý thành công`);
-                    showToast("File PDF đã được xử lý thành công!", "success")
+                    showToast("File tài liệu đã được xử lý thành công!", "success")
                     uploadSection.style.display = "none";
                     changeDocumentBtn.style.display = "flex";
                     loadHistory(true); // Load lại history
@@ -640,9 +725,8 @@
             }
         }
 
-        // ==================== HIỂN THỊ NGUỒN INLINE (dưới message AI) ====================
+        // ==================== HIỂN THỊ NGUỒN INLINE ====================
         function renderSourcesInline(aiMessageDiv, sources, question, answer, pdfPath) {
-            // Xóa sources cũ nếu có (re-render)
             const existing = aiMessageDiv.querySelector('.inline-sources');
             if (existing) existing.remove();
             const contentDiv = aiMessageDiv.querySelector(".message-content");
@@ -685,7 +769,7 @@
                 });
                 card.querySelector('.btn-hl').addEventListener('click', async () => {
                     let path = doc.source_path || pdfPath;
-                    if (path && !path.startsWith('data/')) path = 'data/' + path.split(/[/\\]/).pop();
+                    if (path && !path.startsWith('data/')) path = 'data/' + path.split(/[/\\]/).pop(); // Tách ra lấy phần tử cuối rồi gán data/
                     await openPdfWithHighlight(path, parseInt(page), doc.full_text_for_highlight || doc.page_content);
                 });
 
@@ -698,20 +782,18 @@
             // Toggle collapse
             let open = false;
             toggle.addEventListener('click', () => {
-                open = !open;
+                open = !open; // Biến closure, fnc sẽ nhớ nó kể cả khi đã chạy xong hàm 
                 body.style.display = open ? 'flex' : 'none';
                 toggle.querySelector('.inline-sources-icon').style.transform = open ? 'rotate(180deg)' : '';
             });
         }
         
-        // ==================== HIỂN THỊ CoRAG ANSWER ====================
+        // ==================== Hiển thị phần coRAG trả lời ====================
         function renderCoRAGAnswer(aiMessageDiv, coragText) {
-            // Xóa nếu đã có
             const existing = aiMessageDiv.querySelector('.corag-answer');
             if (existing) existing.remove();
 
             const contentDiv = aiMessageDiv.querySelector(".message-content");
-
             const wrapper = document.createElement('div');
             wrapper.className = 'corag-answer';
             let formattedHTML = coragText
@@ -731,95 +813,6 @@
 
             contentDiv.appendChild(wrapper);
         }
-        // ==================== Cập nhật filter dropdown ====================
-        function updateFileFilter(fileNames) {
-            const select = document.getElementById("fileFilterSelect");
-            const bar = document.getElementById("filterBar");
-        
-            // Reset
-            select.innerHTML = '<option value="">-- Tất cả tài liệu --</option>';
-            if (!fileNames || fileNames.length === 0) {
-                bar.style.display = "none";
-                return;
-            }
-            fileNames.forEach(name => {
-                const opt = document.createElement("option");
-                opt.value = name;
-                opt.textContent = name;
-                select.appendChild(opt);
-            });
-            bar.style.display = fileNames.length > 1 ? "flex" : "none";
-        }
-
-        // ==================== Load history khi trang load hoặc sau upload thành công ====================
-        async function loadHistory(BoiDenItemChat = false) {
-            const res = await fetch('/history/');
-            const data = await res.json();
-            if (data.chat_sessions) {
-                 if (BoiDenItemChat) {
-                    currentChatId = data.current_chat_id;
-                } else {
-                    currentChatId = null;
-                }
-                chatHistory = data.chat_sessions;
-                renderHistory();
-            }
-        }
-        // ==================== TẠO CHAT MỚI HOÀN TOÀN ====================
-        async function createNewChat(showToast = true) {
-            chatArea.innerHTML = ""; // reload lại từ đầu
-            currentPdfPath = null;
-            currentChatId = null;
-            activeChatId = null;
-            statusBar.style.display = "none"; // Ẩn thanh đã đọc đc mấy chunks
-            uploadSection.style.display = "block";
-            questionInput.value = "";
-            toggleInput(false, false);
-            toggleInputSetting(false);
-            renderHistory();
-            if(showToast)
-                showToast("Đã tạo chat mới. Vui lòng upload tài liệu!", "success");
-        }
-
-        // ==================== XÓA MỘT CUỘC TRÒ CHUYỆN ====================
-        async function deleteChat(chatId) {
-            const ok = await confirmCustom(
-                "Bạn có chắc muốn xóa cuộc trò chuyện này?<br><small>Hành động này không thể hoàn tác.</small>"
-            );
-
-            if (!ok) return;
-
-            try {
-                const res = await fetch('/delete-chat/', {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ remove_chat_id: chatId })
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    chatHistory = data.chat_sessions || [];
-                    
-                    // Nếu xóa chat đang xem thì clear chat area
-                    if (currentChatId === chatId) {
-                        chatArea.innerHTML = "";
-                        currentChatId = null;
-                        currentPdfPath = null;   // Reset nếu muốn
-                        toggleInput(false);
-                    }
-
-                    renderHistory();
-                    showToast("Đã xóa cuộc trò chuyện", "success");
-                    createNewChat(false)
-                } else {
-                    showToast(data.message || "Xóa thất bại", "error");
-                }
-            } catch (err) {
-                console.error(err);
-                showToast("Lỗi kết nối khi xóa", "error");
-            }
-        }
 
         // ==================== ĐỔI TÀI LIỆU MỚI====================
        async function changeDocument(choice_file = false) {
@@ -831,7 +824,6 @@
                 input.onchange = async (e) => {
                     const selected_files = e.target.files;
                     if (!selected_files) return;
-                    
                     await processChangeDocument(selected_files);
                 };
                 input.click();
@@ -847,8 +839,8 @@
 
         async function processChangeDocument(selected_files = false) {
             let fileName = null;
+            toggleInput(false, true);
             if (!selected_files) { // Nếu không truyền file (tức chỉ sửa chỉ số)
-                // fileName = currentPdfPath.split(/[/\\]/).pop();
                 fileName = "SỬA THÔNG SỐ"
             } else { // Nếu truyền file vào
                 fileName = Array.from(selected_files).map(file => file.name).join(", ");
@@ -872,13 +864,11 @@
                     method: "POST",
                     body: formData
                 });
-
                 const data = await res.json();
                 loadingMsg.remove();
 
                 if (data.success) {
                     currentPdfPath = data.pdf_path;
-                    statusBar.style.display = "flex";
                     updateFileFilter(data.uploaded_file_name);
                     document.getElementById("pageCount").textContent = data.pages || "0";
                     document.getElementById("chunkCount").textContent = data.chunks || "0";
@@ -886,6 +876,7 @@
                     let uploaded_file_name = Array.from(data.uploaded_file_name).map(f_name => f_name).join(", ");
                     addMessage("ai",`<strong> ${uploaded_file_name}</strong> đã được cập nhật thành công`);
                     showToast("Cập nhật thành công!", "success");
+                    toggleInput(true);
                     await loadHistory();
                 } else {
                     showToast(data.detail || "Thất bại", "error");
@@ -897,7 +888,7 @@
             }
         }
         
-        // ==================== PDF.js HIGHLIGHT VIEWER (PHIÊN BẢN TỐI ƯU) ====================
+        // ==================== PDF.js HIGHLIGHT VIEWER ====================
         let pdfDocGlobal = null; // lưu toàn bộ file PDF sau khi load
         const pdfCanvas = document.getElementById('pdfCanvas'); // dùng để render PDF
         const pdfCtx = pdfCanvas.getContext('2d');

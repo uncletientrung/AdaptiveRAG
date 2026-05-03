@@ -5,10 +5,7 @@ from langchain_core.documents import Document
 import os
 from datetime import datetime
 
-def load_and_split_pdf(
-    pdf_path: str, chunk_size: int = 1000, chunk_overlap: int = 200
-) -> List[Document]:
-    """Load PDF và split thành chunks + metadata."""
+def load_and_split_pdf( pdf_path: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> List[Document]:
     loader = PDFPlumberLoader(pdf_path)
     documents = loader.load()   # Load PDF
 

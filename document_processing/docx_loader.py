@@ -5,11 +5,7 @@ from langchain_core.documents import Document
 import os
 from datetime import datetime
 
-
-def load_and_split_docx(
-    docx_path: str, chunk_size: int = 1000, chunk_overlap: int = 200
-) -> List[Document]:
-    """Load DOCX và split thành chunks."""
+def load_and_split_docx( docx_path: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> List[Document]:    
     loader = Docx2txtLoader(docx_path)
     documents = loader.load() 
     text_splitter = RecursiveCharacterTextSplitter(
