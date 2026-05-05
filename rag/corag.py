@@ -56,7 +56,7 @@ def should_stop(llm, original_query: str, context: str, reasoning_trace: List[Di
 
 
 def iterative_corag(llm, hybrid_retriever, query: str, max_hops: int = 5, use_best_of_n: bool = False) -> Dict:
-    print("-------------------- BẮT ĐẦU ITERATIVE CoRAG ------------------")
+    print("------------------- CoRAG ------------------")
     all_docs = []
     context_parts = [] # Chỉ chứa page_content của docs để đưa vào llm
     reasoning_trace = [] # Ghi lại quá trình suy luận
@@ -120,7 +120,7 @@ def iterative_corag(llm, hybrid_retriever, query: str, max_hops: int = 5, use_be
         next_query = get_llm_text(llm.invoke(reform_prompt)).strip()
         current_query = next_query if next_query else query
 
-    # ================== TẠO CÂU TRẢ LỜI CUỐI CÙNG ==================
+    # Ngữ cảnh được join
     final_context = "\n\n".join(context_parts)
 
 
@@ -137,7 +137,7 @@ def iterative_corag(llm, hybrid_retriever, query: str, max_hops: int = 5, use_be
     """
     answer = get_llm_text(llm.invoke(answer_prompt)).strip()
 
-    # ================== TRẢ VỀ NGUỒN THAM KHẢO ==================
+    # ================== Nguồn tham khảo ==================
     sources = []
     for i, doc in enumerate(all_docs[:15], 1):   # giới hạn số nguồn
         meta = doc.metadata
@@ -150,7 +150,7 @@ def iterative_corag(llm, hybrid_retriever, query: str, max_hops: int = 5, use_be
             "chunk_index": meta.get("chunk_index", "N/A")
         })
 
-    print("-------------------- CoRAG HOÀN THÀNH ------------------")
+    print("-------------------------------------")
     
     return {
         "answer": answer,

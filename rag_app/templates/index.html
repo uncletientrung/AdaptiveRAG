@@ -57,7 +57,7 @@
                         <input type="number" step="0.1" id="temperature" value="0.7">
                     </div>
                 </div>
-                <div class="settings-actions">
+                <div class="settings-actions" id="settings-actions">
                     <button id="editSettingsBtn" class="btn-edit">Chỉnh sửa</button>
                     <button id="saveSettingsBtn" class="btn-save" style="display:none;">Lưu</button>
                     <button id="cancelSettingsBtn" class="btn-cancel-setting" style="display:none;">Đóng</button>
@@ -68,7 +68,7 @@
                 <h3><i class="fas fa-microchip"></i> Model Configuration</h3>
                 <div class="model-config">
                     <div class="config-item"><span>LLM</span><strong>qwen2.5:3b</strong></div>
-                    <div class="config-item"><span>Embedding</span><strong>multilingual</strong></div>
+                    <div class="config-item"><span>Embedding</span><strong>mpnet-base-v2</strong></div>
                     <div class="config-item"><span>Vector DB</span><strong>FAISS</strong></div>
                     <div class="config-item"><span>Framework</span><strong>LangChain</strong></div>
                 </div>
@@ -208,21 +208,17 @@
                 </h3>
                 <button class="modal-close">&times;</button>
             </div>
-            <!-- Thay thế phần modal-body của pdfViewerModal -->
             <div class="modal-body pdf-modal-body">
                 <div id="pdfPageContainer">
                     <canvas id="pdfCanvas"></canvas>
                     <div id="textLayer" class="textLayer"></div>
                 </div>
             </div>
-            <!-- <div style="padding: 10px; text-align: center; background: #f1f1f1; font-size: 0.9rem; color: #555;">
-                Nhấn Ctrl + F để tìm thêm trong PDF • Highlight màu vàng là đoạn được sử dụng để trả lời
-            </div> -->
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        // ==================== KHỞI TẠO BIẾN ====================
+        // ==================== Khởi tạo biến ====================
         let currentPdfPath = null;
         let list_file_updated = null;       // Danh sách file đang upload 
         let currentChatId = null; // Chat đang xem hiện tại
@@ -245,6 +241,7 @@
         const saveBtn = document.getElementById("saveSettingsBtn");
         const cancelBtnSettings = document.getElementById("cancelSettingsBtn");
         const settingInputs = document.querySelectorAll(".setting-item input"); // Danh sách các setting
+        const settingAction = document.getElementById("settings-actions");
         settingInputs.forEach(i => i.disabled = true);
 
         let pdfDoc = null;
@@ -252,7 +249,7 @@
         const ctx = canvas.getContext('2d');
         
 
-        // ==================== HÀM CHUNG ====================
+        // ==================== Hàm chung ====================
         function toggleInput(enabled, check_history = false) {
             if (enabled) {
                 questionInput.disabled = false;
@@ -261,6 +258,7 @@
                 askBtn.style.backgroundColor = "#007BFF";
                 coRAGOption.style.display = "flex"
                 statusBar.style.display = "flex";
+                changeDocumentBtn.style.display = "flex";
             } else {
                 questionInput.disabled = true;
                 askBtn.disabled = true;
@@ -269,6 +267,7 @@
                 } else {
                     questionInput.placeholder = "Không thể gửi tin nhắn khi đang xem lịch sử/ đổi tài liệu";
                 }
+                changeDocumentBtn.style.display = "none";
                 statusBar.style.display = "none";
                 coRAGOption.style.display = "none"
                 askBtn.style.backgroundColor = "#6c757d";
@@ -330,7 +329,7 @@
                         clearInterval(interval);
                         setTimeout(() => {
                             chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: "smooth" });
-                            resolve(); // ← báo hiệu đã xong
+                            resolve(); // báo hiệu đã xong
                         }, 50);
                     }
                 }, 25);
@@ -399,8 +398,6 @@
             }
 
             toast.classList.add("show");
-
-            // Tự động ẩn sau 3.5 giây
             setTimeout(() => {
                 toast.classList.remove("show");
             }, 3500);
@@ -840,7 +837,7 @@
             let fileName = null;
             toggleInput(false, true);
             if (!selected_files) { // Nếu không truyền file (tức chỉ sửa chỉ số)
-                fileName = "SỬA THÔNG SỐ"
+                fileName = list_file_updated ? Array.from(list_file_updated).map(file => file.name).join(", ") : "SỬA THÔNG SỐ"
             } else { // Nếu truyền file vào
                 fileName = Array.from(selected_files).map(file => file.name).join(", ");
             }
@@ -990,12 +987,12 @@
                 }
             });
 
-            if (highlightedCount > 0) {
-                showToast(`Đã highlight ${highlightedCount} đoạn`, "success");
-            } else {
-                showToast("PDF đã mở nhưng không tìm thấy đoạn khớp", "error");
-                console.log("Text nguồn không match:", cleanText.substring(0, 100));
-            }
+            // if (highlightedCount > 0) {
+            //     showToast(`Đã highlight ${highlightedCount} đoạn`, "success");
+            // } else {
+            //     showToast("PDF đã mở nhưng không tìm thấy đoạn khớp", "error");
+            //     console.log("Text nguồn không match:", cleanText.substring(0, 100));
+            // }
         }
 
         // ==================== EVENT LISTENERS ====================
