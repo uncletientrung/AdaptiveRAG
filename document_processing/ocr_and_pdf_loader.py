@@ -11,7 +11,6 @@ def ocr_and_pdf_loader(file_path, chunk_size=1000, chunk_overlap=200):
     pdf_chunks, pdf_documents = load_and_split_pdf(file_path, chunk_size, chunk_overlap)
     page_docs = pdf_documents  
     images = convert_from_path(file_path) # Danh sách ảnh, mỗi trang cắt thành 1 ảnh
-
     final_docs = []
     file_name = os.path.basename(file_path)
     for i, page_doc in enumerate(page_docs):
@@ -27,7 +26,7 @@ def ocr_and_pdf_loader(file_path, chunk_size=1000, chunk_overlap=200):
                     }
                 )
             )
-        else: # Nếu text trang đó < 100 char
+        else: # Nếu text trang đó < 100 
             ocr_text = pytesseract.image_to_string(images[i], lang="vie+eng")  # Lấy text từ ảnh trang đó
             if ocr_text.strip():
                 final_docs.append(
@@ -51,10 +50,10 @@ def ocr_and_pdf_loader(file_path, chunk_size=1000, chunk_overlap=200):
 
     for i, chunk in enumerate(chunks):
         chunk.metadata.update({
-            "file_name": file_name,              # tên file
-            "file_type": "pdf",               # loại file
-            "chunk_index": i,                 # thứ tự chunk
-            "upload_time": upload_time,       # thời gian upload
+            "file_name": file_name,            
+            "file_type": "pdf",              
+            "chunk_index": i,                 
+            "upload_time": upload_time,       
         })
 
     return chunks, final_docs

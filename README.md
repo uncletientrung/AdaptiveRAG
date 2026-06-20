@@ -1,8 +1,24 @@
 # Project: SmartDOC AI
 
-Hệ thống hỏi đáp tài liệu sử dụng **RAG (Retrieval-Augmented Generation)** kết hợp nhiều kỹ thuật nâng cao như Hybrid Retrieval, Reranking, Multi-hop Reasoning và Self-RAG, CoRAG
-
+Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrieval-Augmented Generation)** kết hợp Hybrid Search, Reranking, Self-Evaluation và Multi-hop Retrieval để cung cấp câu trả lời chính xác, đáng tin cậy và giàu ngữ cảnh hơn so với RAG truyền thống.
 ---
+<h4 align="center">Luồng người dùng</h4>
+<table align="center" border="5" cellpadding="10" cellspacing="0">
+  <tr>
+    <td>
+      <img src="./documentation//images/gt1.png" width="800">
+    </td>
+  </tr>
+</table>
+
+<h4 align="center">Luồng lập trình viên</h4>
+<table align="center" border="5" cellpadding="10" cellspacing="0">
+  <tr>
+    <td>
+      <img src="./documentation//images/gt2.png" width="800">
+    </td>
+  </tr>
+</table>
 
 ## Tính năng chính
 
@@ -205,9 +221,3 @@ Log được lưu tại:
 
 ---
 
-## Lưu ý
-
-* File tối đa: 50MB
-* Chỉ hỗ trợ PDF, DOCX
-
----

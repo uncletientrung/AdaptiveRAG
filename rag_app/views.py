@@ -301,9 +301,6 @@ def delete_chat(request): # Xóa chat dựa trên id
                 return JsonResponse({"success": False, "message": "Thiếu chat_id"}, status=400)
 
             chat_sessions = get_or_create_chat_sessions(request)
-            logger.info("=== DELETE CHAT ===")
-            logger.info(f"Xóa chat với id: {chat_id}")
-            logger.info("====================================")
             updated_sessions = [] # Lọc bỏ chat cần xóa
             for chat in chat_sessions:
                 if chat["id"] != chat_id:

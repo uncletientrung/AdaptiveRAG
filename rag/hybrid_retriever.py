@@ -11,7 +11,6 @@ class FilteredVectorRetriever(BaseRetriever): # Custom lại Retriever với vec
     k: int
     fetch_k: int
     filter_metadata: Optional[dict] = None
-
     def _get_relevant_documents(self, query, *, run_manager=None):
         docs = self.vectorstore.similarity_search(query, k=self.fetch_k)
         if self.filter_metadata:

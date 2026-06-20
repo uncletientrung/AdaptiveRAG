@@ -7,7 +7,6 @@ def get_llm_text(response):
         return response.content
     return response
 
-
 def rewrite_initial_query(llm, query: str) -> List[str]: # Tách câu hỏi
     prompt = f"""
         Bạn là hệ thống phân rã câu hỏi cho multi-hop reasoning.
@@ -62,13 +61,11 @@ def iterative_corag(llm, hybrid_retriever, query: str, max_hops: int = 5, use_be
     reasoning_trace = [] # Ghi lại quá trình suy luận
     unique_docs = set() # page_content của docs duy nhất
 
-    # Bước 1: Phân rã ban đầu
     sub_queries = rewrite_initial_query(llm, query)
     current_query = sub_queries[0] if sub_queries else query
 
-    for hop in range(max_hops): # Tạo vòng lặp cho multi hop
+    for hop in range(max_hops): # multi hop
         print(f"\nHop {hop+1}/{max_hops} - Query: {current_query}")
-        
         docs = hybrid_retriever.get_relevant_documents(current_query) # Retrieve dựa trên câu hỏi hiện tại
         new_docs = []
         for doc in docs:
@@ -98,23 +95,18 @@ def iterative_corag(llm, hybrid_retriever, query: str, max_hops: int = 5, use_be
         })
         
         print(f"Reasoning: {reasoning[:200]}...")
-
-        # Kiểm tra đã đủ thông tin chưa nếu rồi thì dừng
+        # DỪng nếu đủ thông tin
         full_context = "\n\n".join(context_parts)
         if should_stop(llm, query, full_context, reasoning_trace):
-            print("   → Đủ thông tin, dừng sớm.")
+            print("Đủ thông tin, dừng sớm.")
             break
 
         # Reformulate query cho bước tiếp theo
         reform_prompt = f"""
             Câu hỏi gốc: {query}
-
             Ngữ cảnh hiện tại: {full_context[-1200:]}
-
             Các suy luận trước: {json.dumps([r["reasoning"] for r in reasoning_trace], ensure_ascii=False, indent=2)}
-
             Hãy sinh ra **một câu hỏi tiếp theo** (bằng tiếng Việt) cần tìm kiếm để thu thập thêm thông tin quan trọng nhất cho câu trả lời.
-
             Chỉ trả về đúng một câu hỏi, không giải thích.
         """
         next_query = get_llm_text(llm.invoke(reform_prompt)).strip()
