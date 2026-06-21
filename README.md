@@ -2,7 +2,7 @@
 
 Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrieval-Augmented Generation)** kết hợp Hybrid Search, Reranking, Self-Evaluation và Multi-hop Retrieval để cung cấp câu trả lời chính xác, đáng tin cậy và giàu ngữ cảnh hơn so với RAG truyền thống.
 ---
-<h4 align="center">Luồng người dùng</h4>
+<h4 align="center">Luồng hoạt động góc nhìn người dùng</h4>
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
@@ -11,7 +11,7 @@ Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrie
   </tr>
 </table>
 
-<h4 align="center">Luồng lập trình viên</h4>
+<h4 align="center">Luồng hoạt động góc nhìn lập trình viên</h4>
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
@@ -22,32 +22,32 @@ Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrie
 
 ## Tính năng chính
 
-* Upload nhiều file PDF (Có hỗ trợ OCR)/ DOCX 
-* Hybrid Search (BM25 + Vector Search)
-* Multi-hop reasoning (chia nhỏ câu hỏi)
-* Self-RAG evaluation (đánh giá độ tin cậy)
-* Rerank bằng Cross Encoder
-* Lưu lịch sử chat
-* Switch tài liệu realtime
+<table align="center" border="5" cellpadding="10" cellspacing="0">
+  <tr>
+    <td>
+      <img src="./documentation//images/gt3.png" width="800">
+    </td>
+  </tr>
+</table>
 
+<table align="center" border="5" cellpadding="10" cellspacing="0">
+  <tr>
+    <td>
+      <img src="./documentation//images/gt4.png" width="800">
+    </td>
+  </tr>
+</table>
 ---
 
 ## Kiến trúc hệ thống
 
-```
-User → Django Views → RAG Pipeline
-                        ↓
-                Hybrid Retriever
-              (BM25 + Vector Search)
-                        ↓
-                   Reranker
-                        ↓
-                      LLM
-                        ↓
-             Multi-hop + Self-RAG
-                        ↓
-                    Response
-```
+<table align="center" border="5" cellpadding="10" cellspacing="0">
+  <tr>
+    <td>
+      <img src="./documentation//images/gt5.png" width="800">
+    </td>
+  </tr>
+</table>
 
 ---
 
