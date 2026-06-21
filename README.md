@@ -1,12 +1,13 @@
-# Project: SmartDOC AI
+# AdaptiveRAG
 
 Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrieval-Augmented Generation)** kết hợp Hybrid Search, Reranking, Self-Evaluation và Multi-hop Retrieval để cung cấp câu trả lời chính xác, đáng tin cậy và giàu ngữ cảnh hơn so với RAG truyền thống.
+
 ---
 <h4 align="center">Luồng hoạt động góc nhìn người dùng</h4>
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
-      <img src="./documentation//images/gt1.png" width="800">
+      <img src="./documentation//images/gt1.png" width="700">
     </td>
   </tr>
 </table>
@@ -15,7 +16,7 @@ Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrie
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
-      <img src="./documentation//images/gt2.png" width="800">
+      <img src="./documentation//images/gt2.png" width="700">
     </td>
   </tr>
 </table>
@@ -25,7 +26,7 @@ Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrie
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
-      <img src="./documentation//images/gt3.png" width="800">
+      <img src="./documentation//images/gt3.png" width="700">
     </td>
   </tr>
 </table>
@@ -33,7 +34,7 @@ Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrie
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
-      <img src="./documentation//images/gt4.png" width="800">
+      <img src="./documentation//images/gt4.png" width="700">
     </td>
   </tr>
 </table>
@@ -44,7 +45,7 @@ Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrie
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
-      <img src="./documentation//images/gt5 .png" width="800">
+      <img src="./documentation//images/gt5 .png" width="700">
     </td>
   </tr>
 </table>
