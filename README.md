@@ -38,14 +38,13 @@ Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrie
     </td>
   </tr>
 </table>
----
 
 ## Kiến trúc hệ thống
 
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
-      <img src="./documentation//images/gt5 .png" width="700">
+      <img src="./documentation//images/gt5.png" width="700">
     </td>
   </tr>
 </table>
