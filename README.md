@@ -44,7 +44,7 @@ Adaptive RAG là hệ thống hỏi đáp thông minh sử dụng  **RAG (Retrie
 <table align="center" border="5" cellpadding="10" cellspacing="0">
   <tr>
     <td>
-      <img src="./documentation//images/gt5.png" width="800">
+      <img src="./documentation//images/gt5 .png" width="800">
     </td>
   </tr>
 </table>
@@ -86,8 +86,8 @@ Project-LLMs-Rag-Agent/
 ### 1. Clone project
 
 ```bash
-git clone https://github.com/uncletientrung/Deepseek-Rag-Agent.git
-cd Deepseek-Rag-Agent
+git clone https://github.com/uncletientrung/AdaptiveRAG
+cd AdaptiveRAG
 ```
 
 ### 2. Tạo môi trường ảo
@@ -167,8 +167,8 @@ Hệ thống sẽ:
 
 1. Rewrite câu hỏi
 2. Retrieve tài liệu
-3. Multi-hop reasoning
-4. Self-evaluate
+3. Self-evaluate 
+4. Multi-hop reasoning
 5. Trả kết quả + nguồn
 
 ---
@@ -184,30 +184,6 @@ Hệ thống sẽ:
 
 * Upload file mới hoặc đổi tham số
 * Pipeline sẽ build lại
-
----
-
-## Pipeline chi tiết
-
-### Query Rewriting
-
-* Tối ưu câu hỏi đầu vào
-
-### Hybrid Retrieval
-
-* FAISS + BM25
-
-### Reranking
-
-* Cross Encoder chọn kết quả tốt nhất
-
-### Multi-hop Reasoning
-
-* Tách câu hỏi nếu cần
-
-### Self-RAG Evaluation
-
-* Chấm điểm độ tin cậy (0 → 1)
 
 ---
 
